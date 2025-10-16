@@ -181,7 +181,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
         <DocumentPanel docs={documents} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc}/>
       )}
 
-      <MessageList messages={messages} isLoading={isSending} />
+      <MessageList messages={messages} isLoading={isSending} onSendMessage={handleSendMessage} />
       <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || isUploading} isUploading={isUploading} />
       </main>
     </div>

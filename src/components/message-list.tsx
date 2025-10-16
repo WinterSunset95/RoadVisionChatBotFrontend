@@ -11,9 +11,17 @@ import { Bot } from 'lucide-react';
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
+  onSendMessage: (message: string) => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+const examplePrompts = [
+    { title: "Summarize tender requirements", text: "Summarize the key requirements for the latest infrastructure tender." },
+    { title: "Check eligibility criteria", text: "What are the eligibility criteria for the recent IT services proposal?" },
+    { title: "Compare tender deadlines", text: "Compare the deadlines for the top 3 construction tenders." },
+    { title: "Find renewable energy tenders", text: "Find any tenders related to renewable energy in the last month." },
+];
+
+export function MessageList({ messages, isLoading, onSendMessage }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,6 +46,15 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                 <p className="text-muted-foreground text-lg">
                     Start a conversation or upload a document to get started.
                 </p>
+
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    {examplePrompts.map((prompt, i) => (
+                        <div key={i} onClick={() => onSendMessage(prompt.text)} className="p-4 bg-card border rounded-lg hover:bg-accent cursor-pointer transition-all">
+                            <p className="font-semibold text-sm">{prompt.title}</p>
+                            <p className="text-muted-foreground text-sm mt-1">{prompt.text}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )

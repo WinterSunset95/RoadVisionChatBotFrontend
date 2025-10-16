@@ -6,17 +6,37 @@
 import { Document } from '@/types';
 import { Button } from '@/components/ui/button';
 import { FileText, Loader, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface DocumentPanelProps {
   docs: Document[];
   isLoading: boolean;
   onClose: () => void;
   onDelete: (docName: string) => void;
+  showDocPanel: boolean;
 }
 
-export function DocumentPanel({ docs, isLoading, onClose, onDelete }: DocumentPanelProps) {
+export function DocumentPanel({ docs, isLoading, onClose, onDelete, showDocPanel }: DocumentPanelProps) {
+  const height = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      // Scroll height + 2rem in px
+      height.current = containerRef.current.scrollHeight + 2 * 16;
+      console.log(height.current, containerRef.current.scrollHeight);
+    }
+  }, [isLoading]);
+
   return (
-    <div className="max-w-4xl mx-auto my-4 p-4 bg-accent/50 rounded-xl border animate-in slide-in-from-top-4 duration-300">
+    <div
+      className={`px-4 bg-accent/50 border transition-[height,padding] duration-500 overflow-hidden`}
+      style={{
+        height: showDocPanel ? height.current : 0,
+        padding: showDocPanel ? '1rem' : '0',
+      }}
+      ref={containerRef}
+    >
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-foreground flex items-center gap-2">
           <FileText size={18} className="text-primary" />

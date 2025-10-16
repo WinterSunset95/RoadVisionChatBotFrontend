@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 /**
  * The main sidebar component containing the new chat button and chat history.
  */
-export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
+export function Sidebar({ initialChats, isMobileOpen, onMobileClose }: { initialChats: Chat[], isMobileOpen: boolean, onMobileClose: () => void }) {
   const router = useRouter();
   const params = useParams();
   const { addToast } = useToasts();
@@ -93,19 +93,25 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
   };
 
   return (
-    <aside className={cn(
-      "bg-background border-r flex-col h-screen transition-all duration-300 hidden lg:flex",
-      isCollapsed ? "w-20" : "w-80"
-    )}>
-      <div className="p-4 border-b flex flex-col gap-4">
-        <div className='flex items-center justify-between'>
-          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(prev => !prev)}><Menu size={20} /></Button>
-          {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={() => { if(isSearching) setSearchQuery(''); setIsSearching(prev => !prev); }}>
-              {isSearching ? <X size={20} /> : <Search size={20} />}
-            </Button>
-          )}
-        </div>
+    <>
+      {isMobileOpen && <div onClick={onMobileClose} className="bg-black/50 fixed inset-0 z-40 lg:hidden" />}
+      <aside className={cn(
+        "bg-background border-r flex flex-col h-screen transition-transform duration-300 z-50 fixed inset-y-0 left-0 w-80",
+        "lg:static lg:flex",
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full',
+        'lg:translate-x-0',
+        isCollapsed ? "lg:w-20" : "lg:w-80"
+      )}>
+        <div className="p-4 border-b flex flex-col gap-4">
+          <div className='flex items-center justify-between'>
+            <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(prev => !prev)} className="hidden lg:flex"><Menu size={20} /></Button>
+            <Button variant="ghost" size="icon" onClick={onMobileClose} className="lg:hidden"><X size={20} /></Button>
+            {!isCollapsed && (
+              <Button variant="ghost" size="icon" onClick={() => { if(isSearching) setSearchQuery(''); setIsSearching(prev => !prev); }}>
+                {isSearching ? <X size={20} /> : <Search size={20} />}
+              </Button>
+            )}
+          </div>
         {isSearching && !isCollapsed && (
             <Input
               type="text"
@@ -146,5 +152,6 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
         )}
       </div>
     </aside>
+    </>
   );
 }

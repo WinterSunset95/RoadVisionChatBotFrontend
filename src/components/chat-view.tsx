@@ -4,10 +4,11 @@
  */
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageList } from '@/components/message-list';
 import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
+import { Sidebar } from '@/components/sidebar';
 import * as api from '@/lib/api';
 import { Message, Document, Chat } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
@@ -19,9 +20,10 @@ interface ChatViewProps {
   initialMessages: Message[];
   initialDocuments: Document[];
   initialChatDetails: Chat;
+  initialChats: Chat[];
 }
 
-export function ChatView({ chatId, initialMessages, initialDocuments, initialChatDetails }: ChatViewProps) {
+export function ChatView({ chatId, initialMessages, initialDocuments, initialChatDetails, initialChats }: ChatViewProps) {
   const { addToast } = useToasts();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatDetails, setChatDetails] = useState<Chat | null>(initialChatDetails);
@@ -32,6 +34,11 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
   // UI State
   const [showDocPanel, setShowDocPanel] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [chatId]);
 
   const handleSendMessage = async (inputText: string) => {
     setIsSending(true);
@@ -92,15 +99,17 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 min-w-0">
-            <Button variant="ghost" size="icon" className="lg:hidden"><Menu size={20} /></Button>
-            <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
-              <Bot size={20} />
-            </div>
+    <div className="flex h-screen w-full">
+      <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} />
+      <main className="flex flex-col h-full bg-background flex-1">
+        {/* Header */}
+        <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 min-w-0">
+              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileSidebarOpen(true)}><Menu size={20} /></Button>
+              <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
+                <Bot size={20} />
+              </div>
             <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'Chat'}</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -119,6 +128,7 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
 
       <MessageList messages={messages} isLoading={isSending} />
       <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || isUploading} isUploading={isUploading} />
+      </main>
     </div>
   );
 }

@@ -44,8 +44,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="bg-background/80 backdrop-blur-sm border-t p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-background/80 backdrop-blur-sm border-t p-4 pb-1">
         <div className="relative flex items-end gap-3">
           <Textarea
             ref={textareaRef}
@@ -71,7 +70,6 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">Shift+Enter for new line. Esc to clear.</p>
-      </div>
     </div>
   );
 }

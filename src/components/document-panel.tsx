@@ -16,7 +16,7 @@ interface DocumentPanelProps {
 
 export function DocumentPanel({ docs, isLoading, onClose, onDelete }: DocumentPanelProps) {
   return (
-    <div className="max-w-4xl mx-auto my-4 p-4 bg-accent/50 rounded-xl border animate-in fade-in duration-300">
+    <div className="max-w-4xl mx-auto my-4 p-4 bg-accent/50 rounded-xl border animate-in slide-in-from-top-4 duration-300">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-foreground flex items-center gap-2">
           <FileText size={18} className="text-primary" />

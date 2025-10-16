@@ -56,7 +56,7 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
 
   return (
     <div className="bg-background/80 backdrop-blur-sm border-t p-4 pb-1">
-        <div className="flex flex-col gap-2 border rounded-lg p-2 focus-within:border-primary transition-all focus-within:shadow">
+        <div className="flex flex-col gap-4 border rounded-lg p-2 focus-within:border-primary transition-all focus-within:shadow">
           <textarea
             ref={textareaRef}
             value={inputMessage}
@@ -72,11 +72,11 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
                 <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={disabled}
-                    variant="ghost"
+                    variant="default"
                     className="gap-2"
                 >
                     {isUploading ? <Loader className="w-5 h-5 animate-spin"/> : <Upload className="w-5 h-5" />}
-                    <span className="text-sm font-medium">Upload PDF</span>
+                    <span className="text-sm font-medium">Upload File</span>
                 </Button>
                 <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
             </div>

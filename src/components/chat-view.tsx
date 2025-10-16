@@ -83,6 +83,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
     try {
       const botResponse = await api.sendMessageToChat(chatId, inputText);
+      console.log(botResponse);
       setMessages((prev) => [...prev, botResponse]);
     } catch (err) {
        addToast('error', 'Failed to send message');

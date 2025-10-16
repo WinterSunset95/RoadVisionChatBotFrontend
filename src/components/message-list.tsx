@@ -21,6 +21,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   };
 
   useEffect(() => {
+    console.log(messages);
     scrollToBottom();
   }, [messages, isLoading]);
 

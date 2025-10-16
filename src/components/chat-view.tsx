@@ -13,7 +13,7 @@ import { Sidebar } from '@/components/sidebar';
 import * as api from '@/lib/api';
 import { Message, Document, Chat } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
-import { Bot, FileText, Menu } from 'lucide-react';
+import { Bot, FileText, LayoutPanelLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ChatViewProps {
@@ -110,7 +110,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
           api.getChats()
         ]);
         setDocuments(updatedDocs);
-        setChatDetails(chats.find(c => c.id === currentChatId) || null);
+        setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
     } catch (error) {
         addToast('error', 'Upload failed', (error as Error).message);
     } finally {
@@ -138,8 +138,8 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             <div className="flex items-center gap-3 min-w-0">
-              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileSidebarOpen(true)}><Menu size={20} /></Button>
-              <Button variant="ghost" size="icon" className="hidden lg:flex" onClick={() => setIsSidebarCollapsed(prev => !prev)}><Menu size={20} /></Button>
+              <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setIsMobileSidebarOpen(true)}><LayoutPanelLeft size={20} /></Button>
+              <Button variant="outline" size="icon" className="hidden lg:flex" onClick={() => setIsSidebarCollapsed(prev => !prev)}><LayoutPanelLeft size={20} /></Button>
               <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
                 <Bot size={20} />
               </div>

@@ -45,29 +45,31 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
 
   return (
     <div className="bg-background/80 backdrop-blur-sm border-t p-4 pb-1">
-        <div className="relative flex items-end gap-3">
-          <Textarea
+        <div className="flex flex-col gap-2 border rounded-lg p-2 focus-within:border-primary transition-all">
+          <textarea
             ref={textareaRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything..."
-            className="w-full pr-14 resize-none"
+            className="w-full focus:outline-none resize-none overflow-hidden"
             disabled={disabled}
             rows={1}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={disabled || !inputMessage.trim()}
-            size="icon"
-            className="absolute right-3 bottom-2.5"
-          >
-            {disabled ? (
-              <Loader className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
+          >Ask me anything...</textarea>
+          <div className='flex items-center justify-between'>
+            <Button
+              onClick={handleSend}
+              disabled={disabled || !inputMessage.trim()}
+              size="icon"
+              className=""
+            >
+              {disabled ? (
+                <Loader className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-2">Shift+Enter for new line. Esc to clear.</p>
     </div>

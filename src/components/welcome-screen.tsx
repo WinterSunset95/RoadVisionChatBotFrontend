@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Bot, MessageSquare, Send, FileText } from 'lucide-react';
 import { createNewChat } from '@/lib/api';
 import { useToasts } from '@/lib/hooks/use-toasts';
+import { Button } from '@/components/ui/button';
 
 export function WelcomeScreen() {
   const router = useRouter();
@@ -40,9 +41,9 @@ export function WelcomeScreen() {
           Start a conversation or upload a document to get instant, intelligent responses powered by advanced AI.
         </p>
 
-        <button
+        <Button
           onClick={handleStartChat}
-          className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105"
+          className="group px-8 py-4 h-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105"
         >
           <span className="flex items-center gap-3">
             Start Chatting
@@ -50,7 +51,7 @@ export function WelcomeScreen() {
               <Send className="w-5 h-5" />
             </div>
           </span>
-        </button>
+        </Button>
 
         <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-2">

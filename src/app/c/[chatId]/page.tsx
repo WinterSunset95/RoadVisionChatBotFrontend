@@ -32,6 +32,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
         initialMessages={initialMessages}
         initialDocuments={initialDocuments}
         initialChatDetails={chatDetails}
+        initialChats={chats}
       />
     );
   } catch (error) {

@@ -24,6 +24,24 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  if (messages.length === 0 && !isLoading) {
+    return (
+        <div className="flex-1 overflow-y-auto bg-muted/50 flex flex-col items-center justify-center">
+            <div className="text-center max-w-lg mx-auto p-8">
+                <div className="w-24 h-24 bg-primary text-primary-foreground rounded-3xl flex items-center justify-center mx-auto shadow-lg">
+                    <Bot className="w-12 h-12" />
+                </div>
+                <h1 className="text-4xl font-bold mt-8 mb-4">
+                    Chat with AI
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                    Start a conversation or upload a document to get started.
+                </p>
+            </div>
+        </div>
+    )
+  }
+
   return (
     <div className="flex-1 overflow-y-auto bg-muted/50">
       <div className="max-w-4xl mx-auto p-6 space-y-6">

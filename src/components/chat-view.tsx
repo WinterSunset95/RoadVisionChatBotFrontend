@@ -5,6 +5,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MessageList } from '@/components/message-list';
 import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
@@ -16,15 +17,17 @@ import { Bot, FileText, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ChatViewProps {
-  chatId: string;
-  initialMessages: Message[];
-  initialDocuments: Document[];
-  initialChatDetails: Chat;
+  chatId?: string;
+  initialMessages?: Message[];
+  initialDocuments?: Document[];
+  initialChatDetails?: Chat;
   initialChats: Chat[];
 }
 
-export function ChatView({ chatId, initialMessages, initialDocuments, initialChatDetails, initialChats }: ChatViewProps) {
+export function ChatView({ chatId: initialChatId, initialMessages = [], initialDocuments = [], initialChatDetails, initialChats }: ChatViewProps) {
+  const router = useRouter();
   const { addToast } = useToasts();
+  const [chatId, setChatId] = useState<string | undefined>(initialChatId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatDetails, setChatDetails] = useState<Chat | null>(initialChatDetails);
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
@@ -40,6 +43,20 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
     setIsMobileSidebarOpen(false);
   }, [chatId]);
 
+  const ensureChatExists = async (): Promise<string | null> => {
+    if (chatId) return chatId;
+    try {
+        const newChat = await api.createNewChat();
+        setChatId(newChat.id);
+        setChatDetails(newChat);
+        router.replace(`/c/${newChat.id}`, { scroll: false });
+        return newChat.id;
+    } catch (error) {
+        addToast('error', 'Failed to create new chat');
+        return null;
+    }
+  };
+
   const handleSendMessage = async (inputText: string) => {
     setIsSending(true);
     const userMessage: Message = {
@@ -50,8 +67,15 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
     };
     setMessages((prev) => [...prev, userMessage]);
 
+    const currentChatId = await ensureChatExists();
+    if (!currentChatId) {
+        setIsSending(false);
+        setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+        return;
+    }
+
     try {
-      const botResponse = await api.sendMessageToChat(chatId, inputText);
+      const botResponse = await api.sendMessageToChat(currentChatId, inputText);
       setMessages((prev) => [...prev, botResponse]);
     } catch (err) {
        addToast('error', 'Failed to send message');
@@ -70,16 +94,22 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
     setIsUploading(true);
     addToast('info', 'Uploading document...', file.name);
 
+    const currentChatId = await ensureChatExists();
+    if (!currentChatId) {
+        setIsUploading(false);
+        return;
+    }
+
     try {
-        await api.uploadFile(chatId, file, (progress) => console.log(progress));
+        await api.uploadFile(currentChatId, file, (progress) => console.log(progress));
         addToast('success', 'Upload complete!', `${file.name} is ready.`);
         // Refresh documents and chat details
         const [updatedDocs, chats] = await Promise.all([
-          api.getChatDocs(chatId),
+          api.getChatDocs(currentChatId),
           api.getChats()
         ]);
         setDocuments(updatedDocs);
-        setChatDetails(chats.find(c => c.id === chatId) || null);
+        setChatDetails(chats.find(c => c.id === currentChatId) || null);
     } catch (error) {
         addToast('error', 'Upload failed', (error as Error).message);
     } finally {
@@ -89,6 +119,7 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
   
   const handleDeleteDoc = async (docName: string) => {
     if(!window.confirm(`Are you sure you want to remove "${docName}"?`)) return;
+    if (!chatId) return;
     try {
         await api.deleteDoc(chatId, docName);
         addToast('success', 'Document removed');
@@ -110,7 +141,7 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
               <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
                 <Bot size={20} />
               </div>
-            <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'Chat'}</h1>
+            <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'New Chat'}</h1>
           </div>
           <div className="flex items-center gap-2">
             {chatDetails?.has_pdf && (

@@ -4,18 +4,21 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader } from 'lucide-react';
+import { Send, Loader, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  onFileUpload: (file: File) => void;
   disabled: boolean;
+  isUploading: boolean;
 }
 
-export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }: ChatInputProps) {
   const [inputMessage, setInputMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -43,6 +46,14 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileUpload(file);
+    }
+    if (e.target) e.target.value = '';
+  };
+
   return (
     <div className="bg-background/80 backdrop-blur-sm border-t p-4 pb-1">
         <div className="flex flex-col gap-2 border rounded-lg p-2 focus-within:border-primary transition-all">
@@ -57,13 +68,24 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             rows={1}
           >Ask me anything...</textarea>
           <div className='flex items-center justify-between'>
+            <div>
+                <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={disabled}
+                    size="icon"
+                    variant="ghost"
+                >
+                    {isUploading ? <Loader className="w-5 h-5 animate-spin"/> : <Upload className="w-5 h-5" />}
+                </Button>
+                <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+            </div>
             <Button
               onClick={handleSend}
               disabled={disabled || !inputMessage.trim()}
               size="icon"
               className=""
             >
-              {disabled ? (
+              {disabled && !isUploading ? (
                 <Loader className="w-5 h-5 animate-spin" />
               ) : (
                 <Send className="w-5 h-5" />

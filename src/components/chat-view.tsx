@@ -11,7 +11,7 @@ import { DocumentPanel } from '@/components/document-panel';
 import * as api from '@/lib/api';
 import { Message, Document, Chat } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
-import { Bot, FileText, Menu, Upload, Loader } from 'lucide-react';
+import { Bot, FileText, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ChatViewProps {
@@ -32,7 +32,6 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
   // UI State
   const [showDocPanel, setShowDocPanel] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSendMessage = async (inputText: string) => {
     setIsSending(true);
@@ -110,10 +109,6 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
                     <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
                 </Button>
             )}
-             <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading} variant="secondary" size="sm" className="gap-2">
-                {isUploading ? <Loader size={16} className="animate-spin" /> : <Upload size={16} />} <span className="hidden sm:inline">{isUploading ? 'Uploading...' : 'Upload'}</span>
-             </Button>
-             <input ref={fileInputRef} type="file" accept=".pdf" onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])} className="hidden" />
           </div>
         </div>
       </header>
@@ -123,7 +118,7 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
       )}
 
       <MessageList messages={messages} isLoading={isSending} />
-      <ChatInput onSendMessage={handleSendMessage} disabled={isSending || isUploading} />
+      <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || isUploading} isUploading={isUploading} />
     </div>
   );
 }

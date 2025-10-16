@@ -7,13 +7,21 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Chat } from '@/types';
 import { ChatHistory } from './chat-history';
-import { Plus, Sun, Moon, Menu, Search, X } from 'lucide-react';
+import { Plus, Sun, Moon, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { createNewChat, deleteChat, renameChat, getChats } from '@/lib/api';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '@/lib/redux/store';
+import { 
+  createNewChat, 
+  deleteChat, 
+  renameChat, 
+  setInitialChats,
+  selectAllChats,
+} from '@/lib/redux/chatSlice';
 
 /**
  * The main sidebar component containing the new chat button and chat history.
@@ -21,46 +29,35 @@ import { cn } from '@/lib/utils';
 export function Sidebar({ initialChats, isMobileOpen, onMobileClose, isCollapsed }: { initialChats: Chat[], isMobileOpen: boolean, onMobileClose: () => void, isCollapsed: boolean }) {
   const router = useRouter();
   const params = useParams();
+  const dispatch: AppDispatch = useDispatch();
   const { addToast } = useToasts();
   const { theme, setTheme } = useTheme();
   
-  const [chats, setChats] = useState<Chat[]>(initialChats);
+  const chats = useSelector(selectAllChats);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [mounted, setMounted] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
 
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), []);
 
-  const fetchChats = async () => {
-    try {
-      const freshChats = await getChats();
-      setChats(freshChats);
-    } catch (error) {
-       addToast('error', 'Could not refresh chats');
-    }
-  }
-
-  // Refetch chats when the active chat ID changes to update counts/titles
   useEffect(() => {
-    fetchChats();
-  }, [params.chatId]);
+    // Hydrate the store with server-side fetched data
+    dispatch(setInitialChats(initialChats));
+  }, [initialChats, dispatch]);
 
-  useEffect(() => {
-    if (!chats) return;
-    setFilteredChats(chats.filter(chat => chat.title.toLowerCase().includes(searchQuery.toLowerCase())));
-  }, [chats, searchQuery]);
+  const filteredChats = chats.filter(chat => 
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCreateChat = async () => {
     try {
-      const newChat = await createNewChat();
-      setChats(prev => [newChat, ...prev]);
+      const newChat = await dispatch(createNewChat()).unwrap();
       router.push(`/c/${newChat.id}`);
     } catch (error) {
-      addToast('error', 'Failed to create chat');
+      addToast('error', 'Failed to create chat', error as string);
       console.error("Failed to create new chat", error);
     }
   };
@@ -68,25 +65,24 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose, isCollapsed
   const handleDeleteChat = async (chatId: string) => {
     if (!window.confirm('Are you sure you want to delete this chat?')) return;
     try {
-      await deleteChat(chatId);
+      await dispatch(deleteChat(chatId)).unwrap();
       addToast('success', 'Chat deleted');
-      setChats(prev => prev.filter(c => c.id !== chatId));
       if (params.chatId === chatId) {
         router.push('/');
       }
     } catch (error) {
-      addToast('error', 'Failed to delete chat');
+      addToast('error', 'Failed to delete chat', error as string);
     }
   };
 
   const handleSaveEdit = async (chatId: string) => {
-    if (!editTitle.trim()) return;
+    const newTitle = editTitle.trim();
+    if (!newTitle) return;
     try {
-      await renameChat(chatId, editTitle);
-      setChats(prev => prev.map(c => c.id === chatId ? { ...c, title: editTitle } : c));
+      await dispatch(renameChat({ chatId, newTitle })).unwrap();
       addToast('success', 'Chat renamed');
-    } catch {
-      addToast('error', 'Failed to rename chat');
+    } catch (error) {
+      addToast('error', 'Failed to rename chat', error as string);
     } finally {
       setEditingChatId(null);
       setEditTitle('');

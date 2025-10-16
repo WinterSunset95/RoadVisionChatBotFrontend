@@ -56,7 +56,7 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
 
   return (
     <div className="bg-background/80 backdrop-blur-sm border-t p-4 pb-1">
-        <div className="flex flex-col gap-2 border rounded-lg p-2 focus-within:border-primary transition-all">
+        <div className="flex flex-col gap-2 border rounded-lg p-2 focus-within:border-primary transition-all focus-within:shadow">
           <textarea
             ref={textareaRef}
             value={inputMessage}

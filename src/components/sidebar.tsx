@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Chat } from '@/types';
 import { ChatHistory } from './chat-history';
-import { Plus, Sun, Moon } from 'lucide-react';
+import { Plus, Sun, Moon, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createNewChat, deleteChat, renameChat, getChats } from '@/lib/api';
 import { useToasts } from '@/lib/hooks/use-toasts';
@@ -85,7 +85,11 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
 
   return (
     <aside className="w-80 bg-background border-r flex flex-col h-screen">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex flex-col gap-4">
+        <div className='flex items-center justify-between'>
+          <Button variant="ghost" size="icon" className=""><Menu size={20} /></Button>
+          <Button variant="ghost" size="icon" className=""><Search size={20} /></Button>
+        </div>
         <Button onClick={handleCreateChat} className="w-full gap-2">
           <Plus size={18} />
           New Chat

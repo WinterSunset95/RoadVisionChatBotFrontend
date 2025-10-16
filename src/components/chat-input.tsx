@@ -66,7 +66,7 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
             className="w-full focus:outline-none resize-none overflow-hidden"
             disabled={disabled}
             rows={1}
-          >Ask me anything...</textarea>
+          ></textarea>
           <div className='flex items-center justify-between'>
             <div>
                 <Button

@@ -6,6 +6,9 @@
 import Link from 'next/link';
 import { Chat } from '@/types';
 import { MessageSquare, FileText, Clock, Edit3, Trash2, X, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface ChatHistoryProps {
   chats: Chat[];
@@ -48,9 +51,10 @@ export function ChatHistory({
       {chats.map((chat) => (
         <Link href={`/c/${chat.id}`} key={chat.id} passHref>
           <div
-            className={`group relative p-3 rounded-lg cursor-pointer transition-all ${
+            className={cn(
+              'group relative p-3 rounded-lg cursor-pointer transition-all',
               activeChatId === chat.id ? 'bg-gradient-to-r from-blue-50 to-purple-50' : 'hover:bg-gray-100'
-            }`}
+            )}
           >
             <div className="flex items-start gap-3">
               <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${chat.has_pdf ? 'bg-purple-100 text-purple-600' : 'bg-gray-200 text-gray-600'}`}>
@@ -59,14 +63,14 @@ export function ChatHistory({
               <div className="flex-1 min-w-0">
                 {editingChatId === chat.id ? (
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                     <input
+                     <Input
                         value={editTitle}
                         onChange={(e) => onEditChange(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') onSaveEdit(chat.id);
                           if (e.key === 'Escape') onCancelEdit();
                         }}
-                        className="w-full bg-white border border-blue-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="h-8"
                         autoFocus
                       />
                   </div>
@@ -85,13 +89,13 @@ export function ChatHistory({
             </div>
              {editingChatId === chat.id ? (
                 <div className="absolute top-2 right-2 flex items-center gap-1" onClick={(e) => {e.stopPropagation(); e.preventDefault();}}>
-                    <button onClick={() => onSaveEdit(chat.id)} className="p-1 hover:bg-green-100 rounded"><Check className="w-3.5 h-3.5 text-green-600" /></button>
-                    <button onClick={onCancelEdit} className="p-1 hover:bg-gray-200 rounded"><X className="w-3.5 h-3.5 text-gray-500" /></button>
+                    <Button onClick={() => onSaveEdit(chat.id)} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-green-100"><Check className="w-3.5 h-3.5 text-green-600" /></Button>
+                    <Button onClick={onCancelEdit} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-gray-200"><X className="w-3.5 h-3.5 text-gray-500" /></Button>
                 </div>
              ) : (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => {e.stopPropagation(); e.preventDefault();}}>
-                  <button onClick={() => onStartEdit(chat)} className="p-1.5 hover:bg-blue-100 rounded-md"><Edit3 className="w-3.5 h-3.5 text-gray-600" /></button>
-                  <button onClick={() => onDelete(chat.id)} className="p-1.5 hover:bg-red-100 rounded-md"><Trash2 className="w-3.5 h-3.5 text-gray-600" /></button>
+                  <Button onClick={() => onStartEdit(chat)} variant="ghost" size="icon" className="h-7 w-7 hover:bg-blue-100"><Edit3 className="w-3.5 h-3.5 text-gray-600" /></Button>
+                  <Button onClick={() => onDelete(chat.id)} variant="ghost" size="icon" className="h-7 w-7 hover:bg-red-100"><Trash2 className="w-3.5 h-3.5 text-gray-600" /></Button>
                 </div>
              )}
           </div>

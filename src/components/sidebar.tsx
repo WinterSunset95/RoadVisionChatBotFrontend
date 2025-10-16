@@ -31,6 +31,7 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose }: { initial
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
 
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), []);
@@ -49,9 +50,10 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose }: { initial
     fetchChats();
   }, [params.chatId]);
 
-  const filteredChats = chats.filter((chat) =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    if (!chats) return;
+    setFilteredChats(chats.filter(chat => chat.title.toLowerCase().includes(searchQuery.toLowerCase())));
+  }, [chats, searchQuery]);
 
   const handleCreateChat = async () => {
     try {

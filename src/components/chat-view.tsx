@@ -29,7 +29,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const { addToast } = useToasts();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [chatDetails, setChatDetails] = useState<Chat | null>(initialChatDetails);
+  const [chatDetails, setChatDetails] = useState<Chat | undefined>(initialChatDetails);
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   
   const [isSending, setIsSending] = useState(false);

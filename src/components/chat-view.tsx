@@ -38,6 +38,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [showDocPanel, setShowDocPanel] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     setIsMobileSidebarOpen(false);
@@ -131,13 +132,14 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
   return (
     <div className="flex h-screen w-full">
-      <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} />
+      <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
       <main className="flex flex-col h-full bg-background flex-1">
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             <div className="flex items-center gap-3 min-w-0">
               <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileSidebarOpen(true)}><Menu size={20} /></Button>
+              <Button variant="ghost" size="icon" className="hidden lg:flex" onClick={() => setIsSidebarCollapsed(prev => !prev)}><Menu size={20} /></Button>
               <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
                 <Bot size={20} />
               </div>

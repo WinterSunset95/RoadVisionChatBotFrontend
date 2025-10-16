@@ -97,25 +97,24 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose, isCollapsed
     <>
       {isMobileOpen && <div onClick={onMobileClose} className="bg-black/50 fixed inset-0 z-40 lg:hidden" />}
       <aside className={cn(
-        "bg-background border-r flex flex-col h-screen transition-transform duration-300 z-50 fixed inset-y-0 left-0 w-80",
+        "bg-background border-r flex flex-col h-screen transition-all duration-300 z-50 fixed inset-y-0 left-0 w-80",
         "lg:static lg:flex",
         isMobileOpen ? 'translate-x-0' : '-translate-x-full',
         'lg:translate-x-0',
         isCollapsed ? "lg:w-20" : "lg:w-80"
       )}>
         <div className="p-4 border-b flex flex-col gap-4">
-          <div className='flex items-center justify-between'>
-            {mounted && <Button
-              variant="ghost"
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <Button
+              variant="default"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hidden lg:flex"
+              className="px-6"
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </Button>}
-            <Button variant="ghost" size="icon" onClick={onMobileClose} className="lg:hidden"><X size={20} /></Button>
+            </Button>
             {!isCollapsed && (
-              <Button variant="ghost" size="icon" onClick={() => { if(isSearching) setSearchQuery(''); setIsSearching(prev => !prev); }}>
+              <Button variant="default" size="icon" className="px-6" onClick={() => { if(isSearching) setSearchQuery(''); setIsSearching(prev => !prev); }}>
                 {isSearching ? <X size={20} /> : <Search size={20} />}
               </Button>
             )}

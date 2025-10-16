@@ -35,12 +35,12 @@ export function MessageBubble({ message }: { message: Message }) {
   );
 
   return (
-    <div className={`flex gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-5 duration-300 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
       <div className={avatarClass}>
         {message.sender === 'user' ? <User size={18} /> : <Bot size={18} />}
       </div>
 
-      <div className={`flex-1 max-w-2xl ${message.sender === 'user' ? 'flex flex-col items-end' : ''}`}>
+      <div className={`flex-1 ${message.sender === 'user' ? 'flex flex-col items-end max-w-2xl' : ''}`}>
         <div className={cn('inline-block', bubbleClass)}>
           <div className="prose prose-sm max-w-none text-current prose-p:my-2 prose-ul:my-2 prose-ol:my-2 dark:prose-invert">
              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>

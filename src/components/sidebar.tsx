@@ -7,11 +7,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Chat } from '@/types';
 import { ChatHistory } from './chat-history';
-import { Plus, Sun, Moon, Menu, Search } from 'lucide-react';
+import { Plus, Sun, Moon, Menu, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { createNewChat, deleteChat, renameChat, getChats } from '@/lib/api';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 /**
  * The main sidebar component containing the new chat button and chat history.
@@ -26,6 +28,9 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // When mounted on client, now we can show the UI
   useEffect(() => setMounted(true), []);
@@ -43,6 +48,10 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
   useEffect(() => {
     fetchChats();
   }, [params.chatId]);
+
+  const filteredChats = chats.filter((chat) =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCreateChat = async () => {
     try {
@@ -84,20 +93,35 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
   };
 
   return (
-    <aside className="w-80 bg-background border-r flex flex-col h-screen">
+    <aside className={cn(
+      "bg-background border-r flex-col h-screen transition-all duration-300 hidden lg:flex",
+      isCollapsed ? "w-20" : "w-80"
+    )}>
       <div className="p-4 border-b flex flex-col gap-4">
         <div className='flex items-center justify-between'>
-          <Button variant="ghost" size="icon" className=""><Menu size={20} /></Button>
-          <Button variant="ghost" size="icon" className=""><Search size={20} /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(prev => !prev)}><Menu size={20} /></Button>
+          {!isCollapsed && (
+            <Button variant="ghost" size="icon" onClick={() => { if(isSearching) setSearchQuery(''); setIsSearching(prev => !prev); }}>
+              {isSearching ? <X size={20} /> : <Search size={20} />}
+            </Button>
+          )}
         </div>
+        {isSearching && !isCollapsed && (
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        )}
         <Button onClick={handleCreateChat} className="w-full gap-2">
           <Plus size={18} />
-          New Chat
+          {!isCollapsed && <span>New Chat</span>}
         </Button>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className={cn("flex-1 overflow-y-auto", { 'hidden': isCollapsed })}>
         <ChatHistory
-          chats={chats}
+          chats={filteredChats}
           activeChatId={params.chatId as string}
           editingChatId={editingChatId}
           editTitle={editTitle}
@@ -113,10 +137,11 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
           <Button
             variant="ghost"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full justify-start gap-3"
+            className={cn("w-full justify-start gap-3", isCollapsed && "justify-center")}
+            size={isCollapsed ? "icon" : "default"}
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+            {!isCollapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
           </Button>
         )}
       </div>

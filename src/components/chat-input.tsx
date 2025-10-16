@@ -5,6 +5,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -42,32 +44,33 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border-t border-gray-200 p-4">
+    <div className="bg-background/80 backdrop-blur-sm border-t p-4">
       <div className="max-w-4xl mx-auto">
         <div className="relative flex items-end gap-3">
-          <textarea
+          <Textarea
             ref={textareaRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything..."
-            className="w-full pl-4 pr-14 py-3 bg-gray-100 border-2 border-transparent rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+            className="w-full pr-14 resize-none"
             disabled={disabled}
             rows={1}
           />
-          <button
+          <Button
             onClick={handleSend}
             disabled={disabled || !inputMessage.trim()}
-            className="absolute right-3 bottom-2.5 p-2 rounded-lg transition-all duration-200 bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-110 active:scale-100"
+            size="icon"
+            className="absolute right-3 bottom-2.5"
           >
             {disabled ? (
               <Loader className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />
             )}
-          </button>
+          </Button>
         </div>
-        <p className="text-xs text-gray-400 text-center mt-2">Shift+Enter for new line. Esc to clear.</p>
+        <p className="text-xs text-muted-foreground text-center mt-2">Shift+Enter for new line. Esc to clear.</p>
       </div>
     </div>
   );

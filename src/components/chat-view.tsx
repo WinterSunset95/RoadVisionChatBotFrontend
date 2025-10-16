@@ -12,6 +12,7 @@ import * as api from '@/lib/api';
 import { Message, Document, Chat } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { Bot, FileText, Menu, Upload, Loader } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ChatViewProps {
   chatId: string;
@@ -92,26 +93,26 @@ export function ChatView({ chatId, initialMessages, initialDocuments, initialCha
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 p-3 sticky top-0 z-10">
+      <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center gap-3 min-w-0">
-            <button className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><Menu size={20} /></button>
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <Bot size={20} className="text-white" />
+            <Button variant="ghost" size="icon" className="lg:hidden"><Menu size={20} /></Button>
+            <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
+              <Bot size={20} />
             </div>
-            <h1 className="font-semibold text-gray-800 dark:text-gray-100 truncate">{chatDetails?.title || 'Chat'}</h1>
+            <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'Chat'}</h1>
           </div>
           <div className="flex items-center gap-2">
             {chatDetails?.has_pdf && (
-                <button onClick={() => setShowDocPanel(!showDocPanel)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-colors">
+                <Button onClick={() => setShowDocPanel(!showDocPanel)} variant="secondary" size="sm" className="gap-2">
                     <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
-                </button>
+                </Button>
             )}
-             <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
+             <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading} variant="secondary" size="sm" className="gap-2">
                 {isUploading ? <Loader size={16} className="animate-spin" /> : <Upload size={16} />} <span className="hidden sm:inline">{isUploading ? 'Uploading...' : 'Upload'}</span>
-             </button>
+             </Button>
              <input ref={fileInputRef} type="file" accept=".pdf" onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])} className="hidden" />
           </div>
         </div>

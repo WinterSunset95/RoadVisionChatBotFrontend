@@ -39,7 +39,7 @@ export function ChatHistory({
 
   if (chats.length === 0) {
     return (
-      <div className="p-4 text-center text-gray-500 h-full flex flex-col items-center justify-center">
+      <div className="p-4 text-center text-muted-foreground h-full flex flex-col items-center justify-center">
         <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
         <p className="text-sm">No conversations yet.</p>
       </div>
@@ -53,11 +53,14 @@ export function ChatHistory({
           <div
             className={cn(
               'group relative p-3 rounded-lg cursor-pointer transition-all',
-              activeChatId === chat.id ? 'bg-gradient-to-r from-blue-50 to-purple-50' : 'hover:bg-gray-100'
+              activeChatId === chat.id ? 'bg-accent' : 'hover:bg-accent'
             )}
           >
             <div className="flex items-start gap-3">
-              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${chat.has_pdf ? 'bg-purple-100 text-purple-600' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={cn(
+                  'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center',
+                   chat.has_pdf ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+              )}>
                 {chat.has_pdf ? <FileText size={16} /> : <MessageSquare size={16} />}
               </div>
               <div className="flex-1 min-w-0">
@@ -76,8 +79,8 @@ export function ChatHistory({
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm font-semibold text-gray-800 truncate">{chat.title}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <p className="text-sm font-semibold text-foreground truncate">{chat.title}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                       <Clock size={12} />
                       <span>{formatDate(chat.updated_at)}</span>
                       <span>•</span>
@@ -89,13 +92,13 @@ export function ChatHistory({
             </div>
              {editingChatId === chat.id ? (
                 <div className="absolute top-2 right-2 flex items-center gap-1" onClick={(e) => {e.stopPropagation(); e.preventDefault();}}>
-                    <Button onClick={() => onSaveEdit(chat.id)} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-green-100"><Check className="w-3.5 h-3.5 text-green-600" /></Button>
-                    <Button onClick={onCancelEdit} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-gray-200"><X className="w-3.5 h-3.5 text-gray-500" /></Button>
+                    <Button onClick={() => onSaveEdit(chat.id)} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-accent"><Check className="w-3.5 h-3.5 text-green-600" /></Button>
+                    <Button onClick={onCancelEdit} variant="ghost" size="icon" className="h-6 w-6 rounded hover:bg-accent"><X className="w-3.5 h-3.5 text-muted-foreground" /></Button>
                 </div>
              ) : (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => {e.stopPropagation(); e.preventDefault();}}>
-                  <Button onClick={() => onStartEdit(chat)} variant="ghost" size="icon" className="h-7 w-7 hover:bg-blue-100"><Edit3 className="w-3.5 h-3.5 text-gray-600" /></Button>
-                  <Button onClick={() => onDelete(chat.id)} variant="ghost" size="icon" className="h-7 w-7 hover:bg-red-100"><Trash2 className="w-3.5 h-3.5 text-gray-600" /></Button>
+                  <Button onClick={() => onStartEdit(chat)} variant="ghost" size="icon" className="h-7 w-7 hover:bg-accent"><Edit3 className="w-3.5 h-3.5 text-muted-foreground" /></Button>
+                  <Button onClick={() => onDelete(chat.id)} variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
                 </div>
              )}
           </div>

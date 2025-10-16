@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Chat } from '@/types';
 import { ChatHistory } from './chat-history';
 import { Plus, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { createNewChat, deleteChat, renameChat, getChats } from '@/lib/api';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { useTheme } from 'next-themes';
@@ -83,15 +84,12 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
   };
 
   return (
-    <aside className="w-80 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-        <button
-          onClick={handleCreateChat}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
-        >
+    <aside className="w-80 bg-background border-r flex flex-col h-screen">
+      <div className="p-4 border-b">
+        <Button onClick={handleCreateChat} className="w-full gap-2">
           <Plus size={18} />
           New Chat
-        </button>
+        </Button>
       </div>
       <div className="flex-1 overflow-y-auto">
         <ChatHistory
@@ -106,15 +104,16 @@ export function Sidebar({ initialChats }: { initialChats: Chat[] }) {
           onDelete={handleDeleteChat}
         />
       </div>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-t">
         {mounted && (
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center justify-start gap-3 p-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-colors"
+            className="w-full justify-start gap-3"
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
+          </Button>
         )}
       </div>
     </aside>

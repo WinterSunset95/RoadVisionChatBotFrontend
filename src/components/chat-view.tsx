@@ -6,6 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { store } from '@/lib/store';
 import { MessageList } from '@/components/message-list';
 import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
@@ -41,24 +42,36 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
+    const pendingMessage = store.getPendingMessage();
+    if (pendingMessage && chatId) {
+      handleSendMessage(pendingMessage);
+    }
+    // We only want this to run once on mount when a chatID is first available.
+    // The store clears the message, so subsequent runs with the same chatId won't do anything.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
+
+  useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [chatId]);
 
-  const ensureChatExists = async (): Promise<string | null> => {
-    if (chatId) return chatId;
-    try {
-        const newChat = await api.createNewChat();
-        setChatId(newChat.id);
-        setChatDetails(newChat);
-        router.replace(`/c/${newChat.id}`, { scroll: false });
-        return newChat.id;
-    } catch (error) {
-        addToast('error', 'Failed to create new chat');
-        return null;
-    }
-  };
-
   const handleSendMessage = async (inputText: string) => {
+    if (!chatId) {
+      // This is a new chat. Create it, store the message, and navigate.
+      // The new page will handle sending the message.
+      setIsSending(true);
+      try {
+        const newChat = await api.createNewChat();
+        store.setPendingMessage(inputText);
+        router.push(`/c/${newChat.id}`);
+      } catch (error) {
+        addToast('error', 'Failed to create new chat');
+        setIsSending(false);
+      }
+      return;
+    }
+
+    // This is an existing chat.
     setIsSending(true);
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -68,15 +81,8 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    const currentChatId = await ensureChatExists();
-    if (!currentChatId) {
-        setIsSending(false);
-        setMessages(prev => prev.filter(m => m.id !== userMessage.id));
-        return;
-    }
-
     try {
-      const botResponse = await api.sendMessageToChat(currentChatId, inputText);
+      const botResponse = await api.sendMessageToChat(chatId, inputText);
       setMessages((prev) => [...prev, botResponse]);
     } catch (err) {
        addToast('error', 'Failed to send message');
@@ -94,23 +100,38 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     if (!file) return;
     setIsUploading(true);
     addToast('info', 'Uploading document...', file.name);
+    
+    let currentChatId = chatId;
 
-    const currentChatId = await ensureChatExists();
+    // If this is a new chat, we create it first.
     if (!currentChatId) {
+      try {
+        const newChat = await api.createNewChat();
+        currentChatId = newChat.id;
+        // We have an ID, but we stay on this page to finish the upload.
+      } catch (error) {
+        addToast('error', 'Failed to create new chat');
         setIsUploading(false);
         return;
+      }
     }
 
     try {
         await api.uploadFile(currentChatId, file, (progress) => console.log(progress));
         addToast('success', 'Upload complete!', `${file.name} is ready.`);
-        // Refresh documents and chat details
-        const [updatedDocs, chats] = await Promise.all([
-          api.getChatDocs(currentChatId),
-          api.getChats()
-        ]);
-        setDocuments(updatedDocs);
-        setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+        
+        if (!chatId) {
+          // If we started from a new chat, navigate to it now.
+          router.push(`/c/${currentChatId}`);
+        } else {
+          // Otherwise, just refresh the docs for the current chat.
+          const [updatedDocs, chats] = await Promise.all([
+            api.getChatDocs(currentChatId),
+            api.getChats()
+          ]);
+          setDocuments(updatedDocs);
+          setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+        }
     } catch (error) {
         addToast('error', 'Upload failed', (error as Error).message);
     } finally {

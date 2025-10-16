@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { ToastProvider, ThemeProvider } from "@/components/providers";
+import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Gemini Clone Chat",
+  description: "A professional chat interface built with Next.js",
+};
+
+/**
+ * The root layout for the entire application.
+ * It sets up the HTML structure, fonts, and global context providers.
+ */
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200 antialiased`}>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <ToastProvider>
+                {children}
+            </ToastProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

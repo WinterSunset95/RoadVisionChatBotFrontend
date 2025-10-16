@@ -72,10 +72,11 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
                 <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={disabled}
-                    size="icon"
                     variant="ghost"
+                    className="gap-2"
                 >
                     {isUploading ? <Loader className="w-5 h-5 animate-spin"/> : <Upload className="w-5 h-5" />}
+                    <span className="text-sm font-medium">Upload PDF</span>
                 </Button>
                 <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
             </div>

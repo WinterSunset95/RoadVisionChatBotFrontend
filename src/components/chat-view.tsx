@@ -113,6 +113,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       try {
         const newChat = await api.createNewChat();
         currentChatId = newChat.id;
+        router.push(`/c/${newChat.id}`);
       } catch (error) {
         addToast('error', 'Failed to create new chat');
         return;

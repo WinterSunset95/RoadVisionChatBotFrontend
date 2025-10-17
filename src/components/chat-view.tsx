@@ -47,12 +47,18 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
-    const pendingMessage = store.getPendingMessage();
-    if (pendingMessage && chatId) {
-      handleSendMessage(pendingMessage);
+    if (chatId) {
+      const pendingMessage = store.getPendingMessage();
+      if (pendingMessage) {
+        handleSendMessage(pendingMessage);
+      }
+      const pendingFile = store.getPendingFile();
+      if (pendingFile) {
+        handleFileUpload(pendingFile);
+      }
     }
     // We only want this to run once on mount when a chatID is first available.
-    // The store clears the message, so subsequent runs with the same chatId won't do anything.
+    // The store clears the message/file, so subsequent runs won't do anything.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
@@ -108,16 +114,17 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
     let currentChatId = chatId;
 
-    // If this is a new chat, we create it first.
+    // If this is a new chat, create it, store the file, and navigate.
+    // The new page will handle the actual upload.
     if (!currentChatId) {
       try {
         const newChat = await api.createNewChat();
-        currentChatId = newChat.id;
+        store.setPendingFile(file);
         router.push(`/c/${newChat.id}`);
       } catch (error) {
         addToast('error', 'Failed to create new chat');
-        return;
       }
+      return;
     }
     
     setIsUploading(true);

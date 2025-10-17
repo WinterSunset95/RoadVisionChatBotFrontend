@@ -132,9 +132,9 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
     try {
       const { job_id } = await api.uploadFile(currentChatId, file);
-      setIsUploading(false); // Unblock input
       addToast('info', 'Processing document...', 'This may take a moment.');
       setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
+      console.log(job_id)
 
       const pollStatus = async () => {
         try {

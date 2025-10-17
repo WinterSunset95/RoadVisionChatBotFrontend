@@ -19,6 +19,7 @@ import { Message, Document, Chat, ProcessingDocument } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { Bot, FileText, LayoutPanelLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UploadProgressOverlay, UploadItem } from '@/components/upload-progress-overlay';
 
 interface ChatViewProps {
   chatId?: string;
@@ -40,11 +41,15 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [isSending, setIsSending] = useState(false);
   
   // UI State
+  interface UploadTask extends UploadItem {
+    xhr: XMLHttpRequest;
+  }
   const [showDocPanel, setShowDocPanel] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // For the actual upload POST
+  const [uploadTasks, setUploadTasks] = useState<UploadTask[]>([]);
   const [processingDocs, setProcessingDocs] = useState<ProcessingDocument[]>(initialDocuments.processing);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const uploadIdCounter = useRef(0);
 
   useEffect(() => {
     if (chatId) {
@@ -109,13 +114,21 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     }
   };
 
+  const handleCancelUpload = (id: string) => {
+    setUploadTasks((prevTasks) => {
+      const taskToCancel = prevTasks.find((task) => task.id === id);
+      if (taskToCancel) {
+        taskToCancel.xhr.abort();
+      }
+      return prevTasks.filter((task) => task.id !== id);
+    });
+  };
+
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
     let currentChatId = chatId;
 
-    // If this is a new chat, create it, store the file, and navigate.
-    // The new page will handle the actual upload.
     if (!currentChatId) {
       try {
         const newChat = await api.createNewChat();
@@ -126,34 +139,43 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       }
       return;
     }
-    
-    setIsUploading(true);
-    addToast('info', 'Uploading document...', file.name);
+
+    const uploadId = `upload_${uploadIdCounter.current++}`;
+    const onProgress = (progress: number) => {
+      setUploadTasks(prev => prev.map(task => 
+          task.id === uploadId ? { ...task, progress } : task
+      ));
+    };
+
+    const { promise, xhr } = api.uploadFile(currentChatId, file, onProgress);
+    setUploadTasks(prev => [...prev, { id: uploadId, file, progress: 0, xhr }]);
 
     try {
-      const { job_id } = await api.uploadFile(currentChatId, file, (progress) => {
-        console.log(`Upload progress: ${progress}%`);
-      });
-      addToast('info', 'Processing document...', 'This may take a moment.');
-      // setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
-      console.log(job_id)
-            
+      await promise;
+      // Upload is complete, now it's processing.
+      addToast('info', `"${file.name}" uploaded, now processing...`);
+      
       if (!chatId) {
         router.push(`/c/${currentChatId!}`);
       } else {
-        // Refetch chats to update sidebar
+        // Refetch everything to get processing status and update lists
         const chats = await dispatch(fetchChats()).unwrap();
         setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
 
-        // Refetch docs for current chat to update panel
         const { documents, processing } = await api.getChatDocs(currentChatId!);
         setDocuments(documents);
         setProcessingDocs(processing.map(p => ({ name: p.name, job_id: p.job_id, status: p.status })));
       }
 
-    } catch (error) {
-      addToast('error', 'Upload failed', (error as Error).message);
-      setIsUploading(false);
+    } catch (error: any) {
+      if (error.message === 'Upload canceled.') {
+        addToast('info', `Upload of ${file.name} canceled.`);
+      } else {
+        addToast('error', `Upload of ${file.name} failed`, error.message);
+      }
+    } finally {
+      // Always remove the task from the upload list when done (success, error, or cancel)
+      setUploadTasks(prev => prev.filter(task => task.id !== uploadId));
     }
   };
   
@@ -171,6 +193,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
   return (
     <div className="flex h-screen w-full">
+      <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
       <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
       <main className="flex flex-col h-full bg-background flex-1">
         {/* Header */}
@@ -197,7 +220,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       <DocumentPanel docs={documents} processingDocs={processingDocs} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc} showDocPanel={showDocPanel} />
 
       <MessageList messages={messages} isLoading={isSending} onSendMessage={handleSendMessage} />
-      <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || isUploading} isUploading={isUploading} />
+      <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || uploadTasks.length > 0} isUploading={uploadTasks.length > 0} />
       </main>
     </div>
   );

@@ -123,12 +123,13 @@ export interface UploadResponse {
   processing: boolean;
 }
 
-export const uploadFile = (chatId: string, file: File, onProgress: (progress: number) => void): Promise<UploadResponse> => {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append('pdf', file);
+export const uploadFile = (chatId: string, file: File, onProgress: (progress: number) => void): { promise: Promise<UploadResponse>, xhr: XMLHttpRequest } => {
+  const formData = new FormData();
+  formData.append('pdf', file);
+  
+  const xhr = new XMLHttpRequest();
 
-    const xhr = new XMLHttpRequest();
+  const promise = new Promise<UploadResponse>((resolve, reject) => {
     xhr.open('POST', `${API_BASE}/chats/${chatId}/upload-pdf`, true);
 
     xhr.upload.onprogress = (event) => {
@@ -161,11 +162,19 @@ export const uploadFile = (chatId: string, file: File, onProgress: (progress: nu
     };
 
     xhr.onerror = () => {
-      reject(new Error('Network error during file upload.'));
+      // Note: 'abort' event also triggers 'error' in some browsers.
+      // We check xhr.status to distinguish. A user-aborted request will have status 0.
+      if (xhr.status === 0) {
+        reject(new Error('Upload canceled.'));
+      } else {
+        reject(new Error('Network error during file upload.'));
+      }
     };
 
     xhr.send(formData);
   });
+  
+  return { promise, xhr };
 };
 
 export interface UploadStatus {

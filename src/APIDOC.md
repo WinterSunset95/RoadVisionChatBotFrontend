@@ -229,6 +229,39 @@ Retrieves a list of all PDF documents uploaded to a single chat.
       "total_pdfs": 1,
       "chat_id": "chat_12345"
     }
+
+(version 2)
+-   **Endpoint:** `/chats/{chatId}/docs`
+-   **Method:** `GET`
+-   **URL Parameters:**
+    -   `chatId` (string, required): The ID of the chat.
+-   **Success Response (200 OK):**
+    ```json
+    {
+      "pdfs": [
+        {
+          "name": "annual-report-2025.pdf",
+          "chunks": 152,
+          "status": "active"
+        }
+      ],
+      "xslx": [
+        {
+          "name": "annual-report-2025.xls",
+          "chunks": 152,
+          "status": "active"
+        }
+      ],
+      "processing": [
+        {
+            "name": "annual-report-2025.pdf",
+            "job_id": "job_uuid_12345",
+            "status": "processing" | "queued"
+        }
+      ],
+      "total_docs": 1,
+      "chat_id": "chat_12345"
+    }
     
 ### 4.4 Get All Documents Across All Chats
 

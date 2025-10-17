@@ -57,9 +57,9 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       if (pendingMessage) {
         handleSendMessage(pendingMessage);
       }
-      const pendingFile = store.getPendingFile();
-      if (pendingFile) {
-        handleFileUpload(pendingFile);
+      const pendingFiles = store.getPendingFiles();
+      if (pendingFiles) {
+        handleFileUpload(pendingFiles);
       }
     }
     // We only want this to run once on mount when a chatID is first available.
@@ -124,15 +124,15 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     });
   };
 
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
+  const handleFileUpload = async (files: File[]) => {
+    if (files.length === 0) return;
 
     let currentChatId = chatId;
 
     if (!currentChatId) {
       try {
         const newChat = await api.createNewChat();
-        store.setPendingFile(file);
+        store.setPendingFiles(files);
         router.push(`/c/${newChat.id}`);
       } catch (error) {
         addToast('error', 'Failed to create new chat');
@@ -140,42 +140,46 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       return;
     }
 
-    const uploadId = `upload_${uploadIdCounter.current++}`;
-    const onProgress = (progress: number) => {
-      setUploadTasks(prev => prev.map(task => 
-          task.id === uploadId ? { ...task, progress } : task
-      ));
-    };
+    const uploadSingleFile = async (file: File) => {
+      const uploadId = `upload_${uploadIdCounter.current++}`;
+      const onProgress = (progress: number) => {
+        setUploadTasks(prev => prev.map(task => 
+            task.id === uploadId ? { ...task, progress } : task
+        ));
+      };
 
-    const { promise, xhr } = api.uploadFile(currentChatId, file, onProgress);
-    setUploadTasks(prev => [...prev, { id: uploadId, file, progress: 0, xhr }]);
+      const { promise, xhr } = api.uploadFile(currentChatId, file, onProgress);
+      setUploadTasks(prev => [...prev, { id: uploadId, file, progress: 0, xhr }]);
 
-    try {
-      await promise;
-      // Upload is complete, now it's processing.
-      addToast('info', `"${file.name}" uploaded, now processing...`);
-      
-      if (!chatId) {
-        router.push(`/c/${currentChatId!}`);
-      } else {
-        // Refetch everything to get processing status and update lists
-        const chats = await dispatch(fetchChats()).unwrap();
-        setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
-
-        const { documents, processing } = await api.getChatDocs(currentChatId!);
-        setDocuments(documents);
-        setProcessingDocs(processing.map(p => ({ name: p.name, job_id: p.job_id, status: p.status })));
+      try {
+        await promise;
+        // Upload is complete, now it's processing.
+        addToast('info', `"${file.name}" uploaded, now processing...`);
+      } catch (error: any) {
+        if (error.message === 'Upload canceled.') {
+          addToast('info', `Upload of ${file.name} canceled.`);
+        } else {
+          addToast('error', `Upload of ${file.name} failed`, error.message);
+        }
+      } finally {
+        // Always remove the task from the upload list when done (success, error, or cancel)
+        setUploadTasks(prev => prev.filter(task => task.id !== uploadId));
       }
+    }
 
-    } catch (error: any) {
-      if (error.message === 'Upload canceled.') {
-        addToast('info', `Upload of ${file.name} canceled.`);
-      } else {
-        addToast('error', `Upload of ${file.name} failed`, error.message);
-      }
-    } finally {
-      // Always remove the task from the upload list when done (success, error, or cancel)
-      setUploadTasks(prev => prev.filter(task => task.id !== uploadId));
+    const uploadPromises = files.map(file => uploadSingleFile(file));
+
+    await Promise.allSettled(uploadPromises);
+
+    if (chatId) {
+      const chats = await dispatch(fetchChats()).unwrap();
+      setChatDetails(chats.find(c => c.id === chatId));
+
+      console.log("Finished uploading files, fetching docs...");
+      const { documents, processing } = await api.getChatDocs(chatId);
+      console.log(documents, processing);
+      setDocuments(documents);
+      setProcessingDocs(processing);
     }
   };
   
@@ -190,6 +194,21 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
         addToast('error', 'Failed to remove document', (error as Error).message);
     }
   }
+
+  // Fetch chat details and documents periodically
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (chatId) {
+        const chats = await api.getChats();
+        const chat = chats.find(c => c.id === chatId);
+        setChatDetails(chat);
+        const { documents, processing } = await api.getChatDocs(chatId);
+        setDocuments(documents);
+        setProcessingDocs(processing);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [chatId]);
 
   return (
     <div className="flex h-screen w-full">
@@ -208,11 +227,9 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
             <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'New Chat'}</h1>
           </div>
           <div className="flex items-center gap-2">
-            {chatDetails?.has_pdf && (
-                <Button onClick={() => setShowDocPanel(!showDocPanel)} variant="secondary" size="sm" className="gap-2">
-                    <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
-                </Button>
-            )}
+            <Button onClick={() => setShowDocPanel(!showDocPanel)} variant="secondary" size="sm" className="gap-2">
+                <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
+            </Button>
           </div>
         </div>
       </header>

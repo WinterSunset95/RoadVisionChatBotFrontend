@@ -3,14 +3,14 @@
  */
 'use client';
 
-import { Document } from '@/types';
+import { Document, ProcessingDocument } from '@/types';
 import { Button } from '@/components/ui/button';
 import { FileText, Loader, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface DocumentPanelProps {
   docs: Document[];
-  processingDocs: { name: string }[];
+  processingDocs: ProcessingDocument[];
   isLoading: boolean;
   onClose: () => void;
   onDelete: (docName: string) => void;
@@ -24,7 +24,14 @@ export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDele
   useEffect(() => {
     if (containerRef.current) {
       // Scroll height + 2rem in px
-      height.current = containerRef.current.scrollHeight + 2 * 16;
+      // height.current = containerRef.current.scrollHeight + 2 * 16;
+      // Check if padding bottom exists
+      const paddingBottom = window.getComputedStyle(containerRef.current).paddingBottom;
+      if (paddingBottom) {
+        height.current = containerRef.current.scrollHeight;
+      } else {
+        height.current = containerRef.current.scrollHeight + 2 * 16;
+      }
       console.log(height.current, containerRef.current.scrollHeight);
     }
   }, [isLoading, docs, processingDocs]);

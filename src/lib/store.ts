@@ -1,12 +1,12 @@
 // A simple in-memory store for transferring state across page loads in the client.
 interface AppState {
   pendingMessage: string | null;
-  pendingFile: File | null;
+  pendingFiles: File[] | null;
 }
 
 const clientState: AppState = {
   pendingMessage: null,
-  pendingFile: null,
+  pendingFiles: null,
 };
 
 export const store = {
@@ -18,12 +18,12 @@ export const store = {
     clientState.pendingMessage = null; // Clear after reading
     return message;
   },
-  setPendingFile: (file: File) => {
-    clientState.pendingFile = file;
+  setPendingFiles: (files: File[]) => {
+    clientState.pendingFiles = files;
   },
-  getPendingFile: (): File | null => {
-    const file = clientState.pendingFile;
-    clientState.pendingFile = null; // Clear after reading
-    return file;
+  getPendingFiles: (): File[] | null => {
+    const files = clientState.pendingFiles;
+    clientState.pendingFiles = null; // Clear after reading
+    return files;
   }
 };

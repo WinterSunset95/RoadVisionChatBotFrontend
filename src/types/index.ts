@@ -59,7 +59,7 @@ export interface SourceReference {
  */
 export interface ProcessingDocument {
     name: string;
-    jobId: string;
+    job_id: string;
     status: 'processing' | 'queued';
 }
 

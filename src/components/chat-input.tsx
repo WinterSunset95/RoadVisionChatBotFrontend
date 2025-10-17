@@ -11,7 +11,7 @@ import { useToasts } from '@/lib/hooks/use-toasts';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  onFileUpload: (file: File) => void;
+  onFileUpload: (files: File[]) => void;
   disabled: boolean;
   isUploading: boolean;
 }
@@ -53,12 +53,17 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
       addToast('error', 'No file selected');
       return;
     };
-    const files = e.target.files;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file) continue;
-      onFileUpload(file);
+    const fileList = e.target.files;
+    const files: File[] = [];
+
+    for (let i = 0; i < fileList.length; i++) {
+      files.push(fileList[i]);
     }
+
+    if (files.length > 0) {
+      onFileUpload(files);
+    }
+
     if (e.target) e.target.value = '';
   };
 

@@ -95,7 +95,7 @@ export const getChatDocs = async (chatId: string): Promise<Document[]> => {
     try {
         const response = await fetch(`${API_BASE}/chats/${chatId}/pdfs`);
         const data = await handleResponse<{pdfs: Document[]}>(response);
-        return data.pdfs || [];
+        return data?.pdfs || [];
     } catch (error) {
         console.warn('Could not fetch documents, maybe none exist for this chat.', error);
         return []; // Return empty array if the endpoint fails (e.g., 404)

@@ -3,6 +3,10 @@ import * as api from '@/lib/api';
 import { Chat } from '@/types';
 import { RootState } from './store';
 
+const sortChats = (chats: Chat[]) => {
+  return [...chats].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+};
+
 export interface ChatListState {
   chats: Chat[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -55,7 +59,7 @@ const chatSlice = createSlice({
       // Hydrate the store with server-fetched chats.
       // Only do this if the chat list is empty to avoid overwriting client state on navigation.
       if (state.chats.length === 0) {
-        state.chats = action.payload;
+        state.chats = sortChats(action.payload);
         state.status = 'succeeded';
       }
     }
@@ -68,7 +72,7 @@ const chatSlice = createSlice({
       })
       .addCase(fetchChats.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.chats = action.payload;
+        state.chats = sortChats(action.payload);
       })
       .addCase(fetchChats.rejected, (state, action) => {
         state.status = 'failed';
@@ -88,7 +92,9 @@ const chatSlice = createSlice({
           const chatToUpdate = state.chats.find(c => c.id === chatId);
           if (chatToUpdate) {
               chatToUpdate.title = newTitle;
+              chatToUpdate.updated_at = new Date().toISOString();
           }
+          state.chats = sortChats(state.chats);
       });
   },
 });

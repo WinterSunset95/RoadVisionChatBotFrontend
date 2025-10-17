@@ -15,7 +15,7 @@ import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
 import { Sidebar } from '@/components/sidebar';
 import * as api from '@/lib/api';
-import { Message, Document, Chat } from '@/types';
+import { Message, Document, Chat, ProcessingDocument } from '@/types';
 import { useToasts } from '@/lib/hooks/use-toasts';
 import { Bot, FileText, LayoutPanelLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,26 +23,26 @@ import { Button } from '@/components/ui/button';
 interface ChatViewProps {
   chatId?: string;
   initialMessages?: Message[];
-  initialDocuments?: Document[];
+  initialDocuments?: { documents: Document[], processing: ProcessingDocument[] };
   initialChatDetails?: Chat;
   initialChats: Chat[];
 }
 
-export function ChatView({ chatId: initialChatId, initialMessages = [], initialDocuments = [], initialChatDetails, initialChats }: ChatViewProps) {
+export function ChatView({ chatId: initialChatId, initialMessages = [], initialDocuments = { documents: [], processing: [] }, initialChatDetails, initialChats }: ChatViewProps) {
   const router = useRouter();
   const dispatch: AppDispatch = useDispatch();
   const { addToast } = useToasts();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatDetails, setChatDetails] = useState<Chat | undefined>(initialChatDetails);
-  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [documents, setDocuments] = useState<Document[]>(initialDocuments.documents);
   
   const [isSending, setIsSending] = useState(false);
   
   // UI State
   const [showDocPanel, setShowDocPanel] = useState(false);
   const [isUploading, setIsUploading] = useState(false); // For the actual upload POST
-  const [processingDocs, setProcessingDocs] = useState<{ jobId: string; name: string }[]>([]);
+  const [processingDocs, setProcessingDocs] = useState<ProcessingDocument[]>(initialDocuments.processing);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -133,40 +133,21 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     try {
       const { job_id } = await api.uploadFile(currentChatId, file);
       addToast('info', 'Processing document...', 'This may take a moment.');
-      setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
+      // setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
       console.log(job_id)
-
-      const pollStatus = async () => {
-        try {
-          const status = await api.getUploadStatus(job_id);
-          if (status.status === 'done') {
-            addToast('success', 'Processing complete!', `${file.name} is ready.`);
             
-            if (!chatId) {
-              router.push(`/c/${currentChatId!}`);
-            } else {
-              // Refetch chats to update sidebar
-              const chats = await dispatch(fetchChats()).unwrap();
-              setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+      if (!chatId) {
+        router.push(`/c/${currentChatId!}`);
+      } else {
+        // Refetch chats to update sidebar
+        const chats = await dispatch(fetchChats()).unwrap();
+        setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
 
-              // Refetch docs for current chat to update panel
-              const { documents, processing } = await api.getChatDocs(currentChatId!);
-              setDocuments(documents);
-              setProcessingDocs(processing.map(p => ({ jobId: p.jobId, name: p.name })));
-            }
-          } else if (status.status === 'error') {
-            addToast('error', 'Processing failed', 'Could not process the document.');
-            setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
-          } else {
-            // still processing, poll again in 2 seconds
-            setTimeout(pollStatus, 2000);
-          }
-        } catch (error) {
-          addToast('error', 'Failed to get upload status', (error as Error).message);
-          setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
-        }
-      };
-      setTimeout(pollStatus, 2000); // Start polling
+        // Refetch docs for current chat to update panel
+        const { documents, processing } = await api.getChatDocs(currentChatId!);
+        setDocuments(documents);
+        setProcessingDocs(processing.map(p => ({ name: p.name, job_id: p.job_id, status: p.status })));
+      }
 
     } catch (error) {
       addToast('error', 'Upload failed', (error as Error).message);

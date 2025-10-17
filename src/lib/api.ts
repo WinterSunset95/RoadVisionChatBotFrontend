@@ -104,10 +104,11 @@ export const getChatDocs = async (chatId: string): Promise<{ documents: Document
 
         const processing: ProcessingDocument[] = data.processing ? data.processing.map((p: any) => ({
             name: p.name,
-            jobId: p.job_id,
+            job_id: p.job_id,
             status: p.status,
         })) : [];
 
+        console.log(documents, processing);
         return { documents, processing };
     } catch (error) {
         console.warn('Could not fetch documents, maybe none exist for this chat.', error);

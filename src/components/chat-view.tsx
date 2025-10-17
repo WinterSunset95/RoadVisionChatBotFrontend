@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { store } from '@/lib/store';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@/lib/redux/store';
-import { updateChatDetails } from '@/lib/redux/chatSlice';
+import { fetchChats, updateChatDetails } from '@/lib/redux/chatSlice';
 import { MessageList } from '@/components/message-list';
 import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
@@ -133,7 +133,6 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     try {
       const { job_id } = await api.uploadFile(currentChatId, file);
       setIsUploading(false); // Unblock input
-      const newDocuments = await api.getChatDocs(currentChatId);
       addToast('info', 'Processing document...', 'This may take a moment.');
       setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
 
@@ -147,12 +146,24 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
             if (!chatId) {
               router.push(`/c/${currentChatId!}`);
             } else {
-              const [updatedDocs, chats] = await Promise.all([
-                api.getChatDocs(currentChatId!),
-                api.getChats()
-              ]);
-              setDocuments(updatedDocs);
-              setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+              // Refetch chats to update sidebar and get new document list
+              const chats = await dispatch(fetchChats()).unwrap();
+              const updatedChatDetails = chats.find(c => c.id === currentChatId);
+
+              if (updatedChatDetails?.pdf_list) {
+                // If the chat list contains our doc info, use it.
+                const updatedDocs: Document[] = updatedChatDetails.pdf_list.map(pdf => ({
+                  name: pdf.name,
+                  chunks: pdf.chunks_added, // APIDOC says GET /chats returns chunks_added
+                  status: pdf.status,
+                }));
+                setDocuments(updatedDocs);
+              } else {
+                // Fallback to fetching docs directly if not in chat list
+                const updatedDocs = await api.getChatDocs(currentChatId!);
+                setDocuments(updatedDocs);
+              }
+              setChatDetails(updatedChatDetails || undefined);
             }
           } else if (status.status === 'error') {
             addToast('error', 'Processing failed', 'Could not process the document.');

@@ -6,6 +6,16 @@
 /**
  * Represents a single chat conversation, typically displayed in the sidebar.
  */
+/**
+ * Represents a PDF document as returned within a Chat object from the GET /chats endpoint.
+ */
+export interface PdfInChatList {
+    name: string;
+    upload_time: string;
+    chunks_added: number;
+    status: 'active' | 'inactive';
+}
+
 export interface Chat {
     id: string;
     title: string;
@@ -13,6 +23,7 @@ export interface Chat {
     message_count: number;
     has_pdf: boolean;
     pdf_count?: number;
+    pdf_list?: PdfInChatList[];
 }
 
 /**

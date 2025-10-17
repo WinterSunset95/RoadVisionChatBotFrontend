@@ -7,8 +7,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Gemini Clone Chat",
-  description: "A professional chat interface built with Next.js",
+  title: "RoadGPT",
+  description: "RoadVision's very own chatbot. A helper for tender documents.",
 };
 
 /**

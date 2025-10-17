@@ -10,13 +10,14 @@ import { useEffect, useRef, useState } from 'react';
 
 interface DocumentPanelProps {
   docs: Document[];
+  processingDocs: { name: string }[];
   isLoading: boolean;
   onClose: () => void;
   onDelete: (docName: string) => void;
   showDocPanel: boolean;
 }
 
-export function DocumentPanel({ docs, isLoading, onClose, onDelete, showDocPanel }: DocumentPanelProps) {
+export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDelete, showDocPanel }: DocumentPanelProps) {
   const height = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +27,7 @@ export function DocumentPanel({ docs, isLoading, onClose, onDelete, showDocPanel
       height.current = containerRef.current.scrollHeight + 2 * 16;
       console.log(height.current, containerRef.current.scrollHeight);
     }
-  }, [isLoading]);
+  }, [isLoading, docs, processingDocs]);
 
   return (
     <div
@@ -40,7 +41,7 @@ export function DocumentPanel({ docs, isLoading, onClose, onDelete, showDocPanel
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-foreground flex items-center gap-2">
           <FileText size={18} className="text-primary" />
-          Documents ({docs.length})
+          Documents ({docs.length + processingDocs.length})
         </h3>
         <Button onClick={onClose} variant="ghost" size="icon" className="w-6 h-6"><X size={16} /></Button>
       </div>
@@ -50,8 +51,20 @@ export function DocumentPanel({ docs, isLoading, onClose, onDelete, showDocPanel
           <Loader className="w-5 h-5 animate-spin text-primary mr-2" />
           Loading documents...
         </div>
-      ) : docs.length > 0 ? (
+      ) : docs.length > 0 || processingDocs.length > 0 ? (
         <div className="space-y-2">
+          {processingDocs.map((doc) => (
+            <div key={doc.name} className="flex items-center justify-between p-3 bg-background rounded-lg shadow-sm border opacity-70">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-primary/10 rounded-md"><FileText size={16} className="text-primary" /></div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+                  <p className="text-xs text-muted-foreground">Processing...</p>
+                </div>
+              </div>
+              <Loader className="w-4 h-4 animate-spin text-primary" />
+            </div>
+          ))}
           {docs.map((doc) => (
             <div key={doc.name} className="flex items-center justify-between p-3 bg-background rounded-lg shadow-sm border">
               <div className="flex items-center gap-3 min-w-0">

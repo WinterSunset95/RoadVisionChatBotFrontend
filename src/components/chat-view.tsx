@@ -41,7 +41,8 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   
   // UI State
   const [showDocPanel, setShowDocPanel] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // For the actual upload POST
+  const [processingDocs, setProcessingDocs] = useState<{ jobId: string; name: string }[]>([]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -104,8 +105,6 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
-    setIsUploading(true);
-    addToast('info', 'Uploading document...', file.name);
 
     let currentChatId = chatId;
 
@@ -114,28 +113,31 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
       try {
         const newChat = await api.createNewChat();
         currentChatId = newChat.id;
-        // We have an ID, but we stay on this page to finish the upload.
       } catch (error) {
         addToast('error', 'Failed to create new chat');
-        setIsUploading(false);
         return;
       }
     }
+    
+    setIsUploading(true);
+    addToast('info', 'Uploading document...', file.name);
 
     try {
       const { job_id } = await api.uploadFile(currentChatId, file);
+      setIsUploading(false); // Unblock input
       addToast('info', 'Processing document...', 'This may take a moment.');
+      setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
 
       const pollStatus = async () => {
         try {
           const status = await api.getUploadStatus(job_id);
           if (status.status === 'done') {
-            addToast('success', 'Upload complete!', `${file.name} is ready.`);
+            addToast('success', 'Processing complete!', `${file.name} is ready.`);
+            setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
+            
             if (!chatId) {
-              // If we started from a new chat, navigate to it now.
               router.push(`/c/${currentChatId!}`);
             } else {
-              // Otherwise, just refresh the docs for the current chat.
               const [updatedDocs, chats] = await Promise.all([
                 api.getChatDocs(currentChatId!),
                 api.getChats()
@@ -143,22 +145,19 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
               setDocuments(updatedDocs);
               setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
             }
-            setIsUploading(false);
           } else if (status.status === 'error') {
             addToast('error', 'Processing failed', 'Could not process the document.');
-            setIsUploading(false);
+            setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
           } else {
             // still processing, poll again in 2 seconds
             setTimeout(pollStatus, 2000);
           }
         } catch (error) {
           addToast('error', 'Failed to get upload status', (error as Error).message);
-          setIsUploading(false);
+          setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
         }
       };
-
-      // Start polling
-      setTimeout(pollStatus, 2000);
+      setTimeout(pollStatus, 2000); // Start polling
 
     } catch (error) {
       addToast('error', 'Upload failed', (error as Error).message);
@@ -203,7 +202,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
         </div>
       </header>
       
-      <DocumentPanel docs={documents} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc} showDocPanel={showDocPanel} />
+      <DocumentPanel docs={documents} processingDocs={processingDocs} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc} showDocPanel={showDocPanel} />
 
       <MessageList messages={messages} isLoading={isSending} onSendMessage={handleSendMessage} />
       <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || isUploading} isUploading={isUploading} />

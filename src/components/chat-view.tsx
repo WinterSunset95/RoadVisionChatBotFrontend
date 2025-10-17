@@ -141,29 +141,18 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
           const status = await api.getUploadStatus(job_id);
           if (status.status === 'done') {
             addToast('success', 'Processing complete!', `${file.name} is ready.`);
-            setProcessingDocs(prev => prev.filter(doc => doc.jobId !== job_id));
             
             if (!chatId) {
               router.push(`/c/${currentChatId!}`);
             } else {
-              // Refetch chats to update sidebar and get new document list
+              // Refetch chats to update sidebar
               const chats = await dispatch(fetchChats()).unwrap();
-              const updatedChatDetails = chats.find(c => c.id === currentChatId);
+              setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
 
-              if (updatedChatDetails?.pdf_list) {
-                // If the chat list contains our doc info, use it.
-                const updatedDocs: Document[] = updatedChatDetails.pdf_list.map(pdf => ({
-                  name: pdf.name,
-                  chunks: pdf.chunks_added, // APIDOC says GET /chats returns chunks_added
-                  status: pdf.status,
-                }));
-                setDocuments(updatedDocs);
-              } else {
-                // Fallback to fetching docs directly if not in chat list
-                const updatedDocs = await api.getChatDocs(currentChatId!);
-                setDocuments(updatedDocs);
-              }
-              setChatDetails(updatedChatDetails || undefined);
+              // Refetch docs for current chat to update panel
+              const { documents, processing } = await api.getChatDocs(currentChatId!);
+              setDocuments(documents);
+              setProcessingDocs(processing.map(p => ({ jobId: p.jobId, name: p.name })));
             }
           } else if (status.status === 'error') {
             addToast('error', 'Processing failed', 'Could not process the document.');

@@ -55,6 +55,15 @@ export interface SourceReference {
 }
 
 /**
+ * Represents a document that is currently being processed on the backend.
+ */
+export interface ProcessingDocument {
+    name: string;
+    jobId: string;
+    status: 'processing' | 'queued';
+}
+
+/**
  * Represents an uploaded document associated with a chat.
  */
 export interface Document {

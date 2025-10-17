@@ -3,7 +3,7 @@
  * This abstracts away the fetch logic, making components cleaner and easier to manage.
  */
 
-import { Chat, Message, Document, SourceReference } from '@/types';
+import { Chat, Message, Document, SourceReference, ProcessingDocument } from '@/types';
 
 // The base URL for your backend API.
 const API_BASE = 'http://3.6.93.207:5000/api';
@@ -92,14 +92,26 @@ export const sendMessageToChat = async (chatId: string, message: string): Promis
 
 // --- DOCUMENT-RELATED API CALLS ---
 
-export const getChatDocs = async (chatId: string): Promise<Document[]> => {
+export const getChatDocs = async (chatId: string): Promise<{ documents: Document[], processing: ProcessingDocument[] }> => {
     try {
-        const response = await fetch(`${API_BASE}/chats/${chatId}/pdfs`);
-        const data = await handleResponse<{pdfs: Document[]}>(response);
-        return data?.pdfs || [];
+        const response = await fetch(`${API_BASE}/chats/${chatId}/docs`);
+        const data = await handleResponse<any>(response);
+        if (!data) return { documents: [], processing: [] };
+
+        const documents: Document[] = [];
+        if (data.pdfs) documents.push(...data.pdfs);
+        if (data.xslx) documents.push(...data.xslx);
+
+        const processing: ProcessingDocument[] = data.processing ? data.processing.map((p: any) => ({
+            name: p.name,
+            jobId: p.job_id,
+            status: p.status,
+        })) : [];
+
+        return { documents, processing };
     } catch (error) {
         console.warn('Could not fetch documents, maybe none exist for this chat.', error);
-        return []; // Return empty array if the endpoint fails (e.g., 404)
+        return { documents: [], processing: [] };
     }
 };
 

@@ -131,7 +131,9 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     addToast('info', 'Uploading document...', file.name);
 
     try {
-      const { job_id } = await api.uploadFile(currentChatId, file);
+      const { job_id } = await api.uploadFile(currentChatId, file, (progress) => {
+        console.log(`Upload progress: ${progress}%`);
+      });
       addToast('info', 'Processing document...', 'This may take a moment.');
       // setProcessingDocs(prev => [...prev, { jobId: job_id, name: file.name }]);
       console.log(job_id)

@@ -123,16 +123,49 @@ export interface UploadResponse {
   processing: boolean;
 }
 
-export const uploadFile = async (chatId: string, file: File): Promise<UploadResponse> => {
-  const formData = new FormData();
-  formData.append('pdf', file);
+export const uploadFile = (chatId: string, file: File, onProgress: (progress: number) => void): Promise<UploadResponse> => {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('pdf', file);
 
-  const response = await fetch(`${API_BASE}/chats/${chatId}/upload-pdf`, {
-    method: 'POST',
-    body: formData,
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_BASE}/chats/${chatId}/upload-pdf`, true);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = Math.round((event.loaded / event.total) * 100);
+        onProgress(percentComplete);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (xhr.status === 204) {
+          resolve(null as any); // Match handleResponse behavior
+          return;
+        }
+        try {
+          const jsonResponse = JSON.parse(xhr.responseText);
+          resolve(jsonResponse);
+        } catch (e) {
+          reject(new Error('Failed to parse server response.'));
+        }
+      } else {
+        try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || `Request failed with status ${xhr.status}`));
+        } catch (e) {
+            reject(new Error(`Request failed with status ${xhr.status}`));
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('Network error during file upload.'));
+    };
+
+    xhr.send(formData);
   });
-
-  return handleResponse<UploadResponse>(response);
 };
 
 export interface UploadStatus {

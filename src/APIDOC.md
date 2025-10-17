@@ -1,22 +1,39 @@
 # Chatbot API Documentation
 
-This document provides a comprehensive overview of the API endpoints used by the chatbot frontend.
+This document provides a comprehensive overview of the API endpoints used by the chatbot frontend, reflecting the current server implementation.
 
 **Base URL:** `http://3.6.93.207:5000/api`
 
 ---
 
-## 1. Chat Management (`/chats`)
+## 1. System Endpoints
 
-This resource is used for managing chat conversations.
+### 1.1 Health Check
 
-### 1.1 Get All Chats
+Checks the operational status of the server.
 
-Retrieves a list of all existing chat conversations.
+-   **Endpoint:** `/health`
+-   **Method:** `GET`
+-   **Success Response (200 OK):**
+    ```json
+    {
+      "status": "healthy",
+      "timestamp": "2025-10-17T14:26:00.123Z",
+      "llamaparse": "available"
+    }
+    
+---
+
+## 2. Chat Management (`/chats`)
+
+This resource is for managing entire chat conversations.
+
+### 2.1 Get All Chats
+
+Retrieves a list of all existing chat conversations, sorted by the most recently updated.
 
 -   **Endpoint:** `/chats`
 -   **Method:** `GET`
--   **Request Body:** None
 -   **Success Response (200 OK):**
     -   An array of chat objects.
     ```json
@@ -27,138 +44,179 @@ Retrieves a list of all existing chat conversations.
         "updated_at": "2025-10-17T11:30:00Z",
         "message_count": 12,
         "has_pdf": true,
-        "pdf_count": 2
-      },
-      ...
+        "pdf_count": 2,
+        "pdf_list": [
+            {
+                "name": "report.pdf",
+                "upload_time": "2025-10-17T11:25:00Z",
+                "chunks_added": 150,
+                "status": "active"
+            }
+        ]
+      }
     ]
-    ```
-
-### 1.2 Create a New Chat
+    
+### 2.2 Create a New Chat
 
 Creates a new, empty chat conversation.
 
 -   **Endpoint:** `/chats`
 -   **Method:** `POST`
--   **Request Body:** None
--   **Success Response (200 OK / 201 Created):**
-    -   A single chat object representing the newly created conversation.
+-   **Success Response (201 Created):**
+    -   A single chat object for the new conversation.
     ```json
     {
       "id": "chat_67890",
-      "title": "New Chat",
+      "title": "New Chat 1",
+      "created_at": "2025-10-17T11:34:00Z",
       "updated_at": "2025-10-17T11:34:00Z",
       "message_count": 0,
       "has_pdf": false,
-      "pdf_count": 0
+      "pdf_count": 0,
+      "pdf_list": []
     }
-    ```
+    
+### 2.3 Get a Single Chat's Messages
 
-### 1.3 Get a Single Chat's Messages
-
-Retrieves the complete message history for a specific chat.
+Retrieves the historical messages for a specific chat. **Note:** This endpoint provides a simplified history and does not include source references for past messages.
 
 -   **Endpoint:** `/chats/{chatId}`
 -   **Method:** `GET`
 -   **URL Parameters:**
     -   `chatId` (string, required): The unique identifier of the chat.
 -   **Success Response (200 OK):**
-    -   An array of message objects.
+    -   An array of simplified message objects.
     ```json
     [
-        {
-            "id": "msg_1",
-            "text": "Hello, how can I help you?",
-            "sender": "bot",
-            "timestamp": "2025-10-17T11:35:00Z",
-            "hasContext": false,
-            "sourceReferences": []
-        }
+      {
+        "id": "msg_1",
+        "text": "Hello, how can I help you?",
+        "sender": "bot",
+        "timestamp": "2025-10-17T11:35:00Z"
+      }
     ]
-    ```
+    
+### 2.4 Delete a Chat
 
-### 1.4 Delete a Chat
-
-Permanently deletes an entire chat conversation and its associated data.
+Permanently deletes a chat, its message history, and its associated vector collection.
 
 -   **Endpoint:** `/chats/{chatId}`
 -   **Method:** `DELETE`
 -   **URL Parameters:**
-    -   `chatId` (string, required): The unique identifier of the chat to delete.
--   **Success Response (200 OK / 204 No Content):**
-    -   An empty body confirming the deletion.
+    -   `chatId` (string, required): The ID of the chat to delete.
+-   **Success Response (200 OK):**
+    ```json
+    {
+      "message": "Chat deleted successfully"
+    }
+    
+### 2.5 Rename a Chat
 
-### 1.5 Rename a Chat
-
-Updates the title of a specific chat conversation.
+Updates the title of a specific chat.
 
 -   **Endpoint:** `/chats/{chatId}/rename`
 -   **Method:** `PUT`
 -   **URL Parameters:**
     -   `chatId` (string, required): The ID of the chat to rename.
 -   **Request Body:**
-    -   A JSON object with the new title.
     ```json
     {
       "title": "Updated Chat Title"
     }
-    ```
--   **Success Response (200 OK):**
-    -   An empty body or the updated chat object.
-
+    -   **Success Response (200 OK):**
+    ```json
+    {
+      "message": "Chat renamed successfully"
+    }
+    
 ---
 
-## 2. Message Management (`/messages`)
+## 3. Message Management
 
-This resource is used for sending and receiving messages within a chat.
+### 3.1 Send a Message
 
-### 2.1 Send a Message
-
-Sends a user's message to a conversation and receives the AI's response.
+Sends a user message to a chat and gets a contextual AI response.
 
 -   **Endpoint:** `/chats/{chatId}/messages`
 -   **Method:** `POST`
 -   **URL Parameters:**
-    -   `chatId` (string, required): The ID of the chat to send the message to.
+    -   `chatId` (string, required): The ID of the chat.
 -   **Request Body:**
-    -   A JSON object containing the user's message.
     ```json
     {
-      "message": "What is the capital of India?"
+      "message": "What were the Q3 earnings?"
     }
-    ```
--   **Success Response (200 OK):**
-    -   A single bot message object, which may include source references if documents were used.
+    -   **Success Response (200 OK):**
+    -   A bot message object, which includes detailed source references if context was used.
     ```json
     {
-      "reply": "The capital of India is New Delhi.",
+      "reply": "The Q3 earnings were $5 million, as stated on Page 5 of the quarterly-report.pdf.",
       "sources": [
         {
           "id": 1,
-          "page": 5,
-          "type": "text",
-          "content": "New Delhi, the capital of India, is located in the northern part of the country.",
-          "source": "geography-facts.pdf"
+          "source": "quarterly-report.pdf",
+          "location": "Page 5",
+          "doc_type": "pdf",
+          "content_type": "text",
+          "content": "In the third quarter, the company saw earnings of $5 million...",
+          "full_content": "...",
+          "page": "5"
         }
-      ]
+      ],
+      "message_count": 13
     }
-    ```
-
+    
 ---
 
-## 3. Document Management (`/pdfs`)
+## 4. Document & Upload Management
 
-This resource is used for handling PDF documents associated with a chat.
+### 4.1 Upload a PDF (Asynchronous)
 
-### 3.1 Get Chat Documents
+Initiates the upload and processing of a PDF file. This is an asynchronous operation.
 
-Retrieves a list of all PDF documents that have been uploaded to a specific chat.
+-   **Endpoint:** `/chats/{chatId}/upload-pdf`
+-   **Method:** `POST`
+-   **URL Parameters:**
+    -   `chatId` (string, required): The ID of the chat.
+-   **Request Body:**
+    -   `multipart/form-data` with the file under the key `pdf`.
+-   **Success Response (202 Accepted):**
+    -   A job ID is returned. The client must poll the `/upload-status/{job_id}` endpoint to track completion.
+    ```json
+    {
+      "message": "Upload accepted",
+      "job_id": "job_uuid_12345",
+      "processing": true
+    }
+    
+### 4.2 Get Upload Status
+
+Checks the status of a background file processing job.
+
+-   **Endpoint:** `/upload-status/{job_id}`
+-   **Method:** `GET`
+-   **URL Parameters:**
+    -   `job_id` (string, required): The ID returned from the upload endpoint.
+-   **Success Response (200 OK):**
+    -   A status object. The `status` will be `queued`, `processing`, `done`, or `error`.
+    ```json
+    {
+        "job_id": "job_uuid_12345",
+        "status": "done",
+        "started_at": "2025-10-17T14:30:00Z",
+        "finished_at": "2025-10-17T14:30:45Z",
+        "chunks_added": 150
+    }
+    
+### 4.3 Get Documents for a Specific Chat
+
+Retrieves a list of all PDF documents uploaded to a single chat.
 
 -   **Endpoint:** `/chats/{chatId}/pdfs`
 -   **Method:** `GET`
 -   **URL Parameters:**
     -   `chatId` (string, required): The ID of the chat.
 -   **Success Response (200 OK):**
-    -   A JSON object containing an array of document objects.
     ```json
     {
       "pdfs": [
@@ -167,37 +225,47 @@ Retrieves a list of all PDF documents that have been uploaded to a specific chat
           "chunks": 152,
           "status": "active"
         }
-      ]
+      ],
+      "total_pdfs": 1,
+      "chat_id": "chat_12345"
     }
-    ```
+    
+### 4.4 Get All Documents Across All Chats
 
-### 3.2 Upload a PDF
+Retrieves a master list of all PDFs that have been uploaded to any chat.
 
-Uploads a PDF file to a chat, where it will be processed and indexed for context.
-
--   **Endpoint:** `/chats/{chatId}/upload-pdf`
--   **Method:** `POST`
--   **URL Parameters:**
-    -   `chatId` (string, required): The ID of the chat to associate the document with.
--   **Request Body:**
-    -   `multipart/form-data` containing the PDF file under the key `pdf`.
+-   **Endpoint:** `/pdfs`
+-   **Method:** `GET`
 -   **Success Response (200 OK):**
-    -   A JSON object confirming the successful upload.
     ```json
     {
-      "message": "File uploaded and processed successfully.",
-      "filename": "annual-report-2025.pdf"
+      "pdfs": [
+          {
+              "chat_id": "chat_12345",
+              "chat_title": "My First Chat",
+              "name": "annual-report.pdf",
+              "chunks": 152,
+              "status": "active",
+              "uploaded_at": "2025-10-17T14:30:00Z"
+          }
+      ],
+      "total_pdfs": 1
     }
-    ```
+    
+### 4.5 Delete a PDF from a Chat
 
-### 3.3 Delete a PDF
+Removes a specific PDF from a chat and its associated data from the vector store.
 
-Permanently removes a specific PDF document from a chat.
-
--   **Endpoint:** `/chats/{chatId}/pdfs/{docName}`
+-   **Endpoint:** `/chats/{chatId}/pdfs/{pdf_name}`
 -   **Method:** `DELETE`
 -   **URL Parameters:**
     -   `chatId` (string, required): The ID of the chat.
-    -   `docName` (string, required): The URL-encoded filename of the document to delete.
--   **Success Response (200 OK / 204 No Content):**
-    -   An empty body confirming the deletion.
+    -   `pdf_name` (string, required): The URL-encoded filename to delete.
+-   **Success Response (200 OK):**
+    ```json
+    {
+        "message": "PDF removed successfully",
+        "chat_id": "chat_12345",
+        "pdf_name": "annual-report.pdf"
+    }
+    ```

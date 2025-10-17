@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useToasts } from '@/lib/hooks/use-toasts';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -19,6 +20,7 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
   const [inputMessage, setInputMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { addToast } = useToasts();
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -47,8 +49,14 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    if (!e.target.files) {
+      addToast('error', 'No file selected');
+      return;
+    };
+    const files = e.target.files;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file) continue;
       onFileUpload(file);
     }
     if (e.target) e.target.value = '';
@@ -78,7 +86,7 @@ export function ChatInput({ onSendMessage, onFileUpload, disabled, isUploading }
                     {isUploading ? <Loader className="w-5 h-5 animate-spin"/> : <Upload className="w-5 h-5" />}
                     <span className="text-sm font-medium">Upload File</span>
                 </Button>
-                <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+                <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" multiple/>
             </div>
             <Button
               onClick={handleSend}

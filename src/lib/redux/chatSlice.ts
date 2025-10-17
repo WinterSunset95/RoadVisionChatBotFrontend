@@ -62,6 +62,14 @@ const chatSlice = createSlice({
         state.chats = sortChats(action.payload);
         state.status = 'succeeded';
       }
+    },
+    updateChatDetails: (state, action: PayloadAction<{ chatId: string, messageCount: number }>) => {
+      const chatToUpdate = state.chats.find(c => c.id === action.payload.chatId);
+      if (chatToUpdate) {
+        chatToUpdate.message_count = action.payload.messageCount;
+        chatToUpdate.updated_at = new Date().toISOString();
+      }
+      state.chats = sortChats(state.chats);
     }
   },
   extraReducers: (builder) => {
@@ -99,7 +107,7 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setInitialChats } = chatSlice.actions;
+export const { setInitialChats, updateChatDetails } = chatSlice.actions;
 
 export const selectAllChats = (state: RootState) => state.chats.chats;
 export const selectChatsStatus = (state: RootState) => state.chats.status;

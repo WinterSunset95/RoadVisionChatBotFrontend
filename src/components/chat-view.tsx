@@ -7,6 +7,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { store } from '@/lib/store';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/lib/redux/store';
+import { updateChatDetails } from '@/lib/redux/chatSlice';
 import { MessageList } from '@/components/message-list';
 import { ChatInput } from '@/components/chat-input';
 import { DocumentPanel } from '@/components/document-panel';
@@ -27,6 +30,7 @@ interface ChatViewProps {
 
 export function ChatView({ chatId: initialChatId, initialMessages = [], initialDocuments = [], initialChatDetails, initialChats }: ChatViewProps) {
   const router = useRouter();
+  const dispatch: AppDispatch = useDispatch();
   const { addToast } = useToasts();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -82,9 +86,10 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const botResponse = await api.sendMessageToChat(chatId, inputText);
-      console.log(botResponse);
-      setMessages((prev) => [...prev, botResponse]);
+      const { botMessage, messageCount } = await api.sendMessageToChat(chatId, inputText);
+      console.log(botMessage);
+      setMessages((prev) => [...prev, botMessage]);
+      dispatch(updateChatDetails({ chatId: chatId!, messageCount }));
     } catch (err) {
        addToast('error', 'Failed to send message');
        const errorMessage: Message = {
@@ -101,7 +106,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     if (!file) return;
     setIsUploading(true);
     addToast('info', 'Uploading document...', file.name);
-    
+
     let currentChatId = chatId;
 
     // If this is a new chat, we create it first.
@@ -118,25 +123,46 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     }
 
     try {
-        await api.uploadFile(currentChatId, file, (progress) => console.log(progress));
-        addToast('success', 'Upload complete!', `${file.name} is ready.`);
-        
-        if (!chatId) {
-          // If we started from a new chat, navigate to it now.
-          router.push(`/c/${currentChatId}`);
-        } else {
-          // Otherwise, just refresh the docs for the current chat.
-          const [updatedDocs, chats] = await Promise.all([
-            api.getChatDocs(currentChatId),
-            api.getChats()
-          ]);
-          setDocuments(updatedDocs);
-          setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+      const { job_id } = await api.uploadFile(currentChatId, file);
+      addToast('info', 'Processing document...', 'This may take a moment.');
+
+      const pollStatus = async () => {
+        try {
+          const status = await api.getUploadStatus(job_id);
+          if (status.status === 'done') {
+            addToast('success', 'Upload complete!', `${file.name} is ready.`);
+            if (!chatId) {
+              // If we started from a new chat, navigate to it now.
+              router.push(`/c/${currentChatId!}`);
+            } else {
+              // Otherwise, just refresh the docs for the current chat.
+              const [updatedDocs, chats] = await Promise.all([
+                api.getChatDocs(currentChatId!),
+                api.getChats()
+              ]);
+              setDocuments(updatedDocs);
+              setChatDetails(chats.find(c => c.id === currentChatId) || undefined);
+            }
+            setIsUploading(false);
+          } else if (status.status === 'error') {
+            addToast('error', 'Processing failed', 'Could not process the document.');
+            setIsUploading(false);
+          } else {
+            // still processing, poll again in 2 seconds
+            setTimeout(pollStatus, 2000);
+          }
+        } catch (error) {
+          addToast('error', 'Failed to get upload status', (error as Error).message);
+          setIsUploading(false);
         }
+      };
+
+      // Start polling
+      setTimeout(pollStatus, 2000);
+
     } catch (error) {
-        addToast('error', 'Upload failed', (error as Error).message);
-    } finally {
-        setIsUploading(false);
+      addToast('error', 'Upload failed', (error as Error).message);
+      setIsUploading(false);
     }
   };
   

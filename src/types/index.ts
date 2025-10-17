@@ -34,10 +34,13 @@ export interface Message {
  */
 export interface SourceReference {
     id: number;
-    page: number;
-    type: string;
-    content: string;
     source: string;
+    location?: string;
+    doc_type: string;
+    content_type: string;
+    content: string;
+    full_content?: string;
+    page: string;
 }
 
 /**

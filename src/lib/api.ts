@@ -61,7 +61,7 @@ export const getMessagesForChat = async (chatId: string): Promise<Message[]> => 
   return handleResponse<Message[]>(response);
 };
 
-export const sendMessageToChat = async (chatId: string, message: string): Promise<Message> => {
+export const sendMessageToChat = async (chatId: string, message: string): Promise<{ botMessage: Message, messageCount: number }> => {
   const response = await fetch(`${API_BASE}/chats/${chatId}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -73,6 +73,7 @@ export const sendMessageToChat = async (chatId: string, message: string): Promis
   interface BotResponse {
     reply: string;
     sources: SourceReference[];
+    message_count: number;
   }
 
   const botResponse = await handleResponse<BotResponse>(response);
@@ -86,7 +87,7 @@ export const sendMessageToChat = async (chatId: string, message: string): Promis
     sourceReferences: botResponse.sources,
   };
 
-  return botMessage;
+  return { botMessage, messageCount: botResponse.message_count };
 };
 
 // --- DOCUMENT-RELATED API CALLS ---
@@ -103,23 +104,35 @@ export const getChatDocs = async (chatId: string): Promise<Document[]> => {
 };
 
 
-export const uploadFile = async (chatId: string, file: File, onProgress: (progress: number) => void): Promise<any> => {
-  // This is a simplified version. For actual progress, you would need
-  // to use XMLHttpRequest or a library that supports upload progress with fetch.
-  // Here, we'll just simulate progress.
-  
-  onProgress(10);
+export interface UploadResponse {
+  message: string;
+  job_id: string;
+  processing: boolean;
+}
+
+export const uploadFile = async (chatId: string, file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('pdf', file);
-  onProgress(30);
 
   const response = await fetch(`${API_BASE}/chats/${chatId}/upload-pdf`, {
     method: 'POST',
     body: formData,
   });
 
-  onProgress(100);
-  return handleResponse(response);
+  return handleResponse<UploadResponse>(response);
+};
+
+export interface UploadStatus {
+  job_id: string;
+  status: 'queued' | 'processing' | 'done' | 'error';
+  started_at?: string;
+  finished_at?: string;
+  chunks_added?: number;
+}
+
+export const getUploadStatus = async (jobId: string): Promise<UploadStatus> => {
+  const response = await fetch(`${API_BASE}/upload-status/${jobId}`);
+  return handleResponse<UploadStatus>(response);
 };
 
 export const deleteDoc = async (chatId: string, docName: string): Promise<void> => {

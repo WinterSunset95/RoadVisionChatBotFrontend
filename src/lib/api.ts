@@ -3,7 +3,7 @@
  * This abstracts away the fetch logic, making components cleaner and easier to manage.
  */
 
-import { Chat, Message, Document } from '@/types';
+import { Chat, Message, Document, SourceReference } from '@/types';
 
 // The base URL for your backend API.
 const API_BASE = 'http://3.6.93.207:5000/api';
@@ -67,7 +67,26 @@ export const sendMessageToChat = async (chatId: string, message: string): Promis
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message }),
   });
-  return handleResponse<Message>(response);
+
+  // The backend returns a different structure for a bot's reply.
+  // We need to adapt it to our standard `Message` type.
+  interface BotResponse {
+    reply: string;
+    sources: SourceReference[];
+  }
+
+  const botResponse = await handleResponse<BotResponse>(response);
+
+  const botMessage: Message = {
+    id: `msg_${Date.now()}`,
+    text: botResponse.reply,
+    sender: 'bot',
+    timestamp: new Date().toISOString(),
+    hasContext: botResponse.sources && botResponse.sources.length > 0,
+    sourceReferences: botResponse.sources,
+  };
+
+  return botMessage;
 };
 
 // --- DOCUMENT-RELATED API CALLS ---

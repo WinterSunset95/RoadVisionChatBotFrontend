@@ -6,8 +6,8 @@
 import { Chat, Message, Document, SourceReference, ProcessingDocument } from '@/types';
 
 // The base URL for your backend API.
-const API_BASE = 'http://3.6.93.207:5000/api';
-// const API_BASE = 'http://localhost:5050/api'
+// const API_BASE = 'http://3.6.93.207:5000/api';
+const API_BASE = 'http://localhost:5000/api'
 
 /**
  * A helper function to handle API responses.

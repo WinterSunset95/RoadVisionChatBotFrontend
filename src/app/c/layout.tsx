@@ -10,7 +10,7 @@ export default async function ChatLayout({
 }) {
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden">
+    <div className="flex h-full w-full bg-white overflow-hidden">
       <main className="flex-1 flex flex-col">
         {children}
       </main>

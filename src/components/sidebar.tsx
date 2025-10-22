@@ -93,7 +93,7 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose, isCollapsed
     <>
       {isMobileOpen && <div onClick={onMobileClose} className="bg-black/50 fixed inset-0 z-40 lg:hidden" />}
       <aside className={cn(
-        "bg-background border-r flex flex-col h-screen transition-all duration-300 z-50 fixed inset-y-0 left-0 w-80",
+        "bg-background border-r flex flex-col h-full transition-all duration-300 z-50 fixed inset-y-0 left-0 w-80",
         "lg:static lg:flex",
         isMobileOpen ? 'translate-x-0' : '-translate-x-full',
         'lg:translate-x-0',

@@ -50,6 +50,18 @@ export function MessageBubble({ message }: { message: Message }) {
                 ul: ({ node, ...props }) => <ul className="my-2 ml-4 list-disc list-inside space-y-1" {...props} />,
                 ol: ({ node, ...props }) => <ol className="my-2 ml-4 list-decimal list-inside space-y-1" {...props} />,
                 a: ({ node, ...props }) => <a className="font-semibold underline hover:no-underline" {...props} />,
+                table: ({ node, ...props }) => <table className="my-2 w-full border-collapse" {...props} />,
+                th: ({ node, ...props }) => <th className="border border-primary/20 p-2" {...props} />,
+                td: ({ node, ...props }) => <td className="border border-primary/20 p-2" {...props} />,
+                hr: ({ node, ...props }) => <hr className="my-4" {...props} />,
+                blockquote: ({ node, ...props }) => <blockquote className="my-2 border-l-2 border-primary/20 pl-4 italic" {...props} />,
+                code: ({ node, ...props }) => <code className="inline-block rounded bg-muted px-1 py-0.5 font-mono text-sm" {...props} />,
+                h1: ({ node, ...props }) => <h1 className="my-2 text-2xl font-bold" {...props} />,
+                h2: ({ node, ...props }) => <h2 className="my-2 text-xl font-bold" {...props} />,
+                h3: ({ node, ...props }) => <h3 className="my-2 text-lg font-bold" {...props} />,
+                h4: ({ node, ...props }) => <h4 className="my-2 text-md font-bold" {...props} />,
+                h5: ({ node, ...props }) => <h5 className="my-2 text-sm font-bold" {...props} />,
+                h6: ({ node, ...props }) => <h6 className="my-2 text-xs font-bold" {...props} />,
               }}
             >
               {message.text}

@@ -211,7 +211,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   }, [chatId]);
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-full w-full">
       <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
       <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
       <main className="flex flex-col h-full bg-background flex-1">

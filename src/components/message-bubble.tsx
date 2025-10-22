@@ -42,7 +42,7 @@ export function MessageBubble({ message }: { message: Message }) {
 
       <div className={`flex-1 ${message.sender === 'user' ? 'flex flex-col items-end max-w-2xl' : ''}`}>
         <div className={cn('inline-block', bubbleClass)}>
-          <div className="prose prose-sm max-w-none text-current prose-p:my-2 prose-ul:my-2 prose-ol:my-2 dark:prose-invert">
+          <div className="prose prose-sm max-w-none text-current dark:prose-invert">
              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
           </div>
 

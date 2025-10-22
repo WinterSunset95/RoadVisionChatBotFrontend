@@ -42,8 +42,18 @@ export function MessageBubble({ message }: { message: Message }) {
 
       <div className={`flex-1 ${message.sender === 'user' ? 'flex flex-col items-end max-w-2xl' : ''}`}>
         <div className={cn('inline-block', bubbleClass)}>
-          <div className="prose prose-sm max-w-none text-current dark:prose-invert">
-             <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+          <div className="text-sm max-w-none text-current">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                ul: ({ node, ...props }) => <ul className="my-2 ml-4 list-disc list-inside space-y-1" {...props} />,
+                ol: ({ node, ...props }) => <ol className="my-2 ml-4 list-decimal list-inside space-y-1" {...props} />,
+                a: ({ node, ...props }) => <a className="font-semibold underline hover:no-underline" {...props} />,
+              }}
+            >
+              {message.text}
+            </ReactMarkdown>
           </div>
 
           {message.hasContext && (

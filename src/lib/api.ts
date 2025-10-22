@@ -5,9 +5,6 @@
 
 import { Chat, Message, Document, SourceReference, ProcessingDocument } from '@/types';
 
-let HOST = window.location.host;
-console.log(HOST);
-
 // The base URL for your backend API.
 // const API_BASE = 'http://3.6.93.207:5000/api';
 const API_BASE = '/api'

@@ -7,7 +7,9 @@ import { Chat, Message, Document, SourceReference, ProcessingDocument } from '@/
 
 // The base URL for your backend API.
 // const API_BASE = 'http://3.6.93.207:5000/api';
-const API_BASE = '/api'
+const API_BASE = typeof window === 'undefined'
+  ? 'http://localhost:5000/api' // Use absolute URL on the server
+  : '/api';                      // Use relative URL on the client (proxied)
 
 /**
  * A helper function to handle API responses.

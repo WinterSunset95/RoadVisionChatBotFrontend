@@ -117,7 +117,6 @@ export const getChatDocs = async (chatId: string): Promise<{ documents: Document
             status: p.status,
         })) : [];
 
-        console.log(documents, processing);
         return { documents, processing };
     } catch (error) {
         console.warn('Could not fetch documents, maybe none exist for this chat.', error);

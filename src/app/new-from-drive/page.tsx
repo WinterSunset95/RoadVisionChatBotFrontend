@@ -1,24 +1,9 @@
-import { redirect } from 'next/navigation';
+'use client'
+import { redirect, useSearchParams } from 'next/navigation';
 import * as api from '@/lib/api';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
-
-/**
- * An async component that performs the server-side action of creating a chat.
- * While this component is resolving, Next.js will show the Suspense fallback.
- */
-async function CreateChatAndRedirect({ driveUrl }: { driveUrl: string }) {
-  const newChat = await api.createNewChat(driveUrl);
-  redirect(`/c/${newChat.id}`);
-  // redirect(`/c/777b9006-ad0b-42e8-97c0-986d9e8678fb`)
-  //
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-      <h1 className="text-xl font-semibold mb-4 text-destructive">Error Creating Chat</h1>
-      <p className="text-muted-foreground">Could not create a new chat from the provided link.</p>
-    </div>
-  );
-}
+import { Document, ProcessingDocument } from '@/types';
 
 /**
  * The UI to show while the chat is being created on the server.
@@ -43,11 +28,33 @@ interface NewFromDrivePageProps {
  * The main page component for the /new-from-drive route.
  * It validates the input and uses a Suspense boundary for a better user experience.
  */
-export default async function NewFromDrivePage({ searchParams: searchParamsPromise }: NewFromDrivePageProps) {
-  const searchParams = await searchParamsPromise;
-  const { driveUrl } = searchParams;
+function NewFromDrivePage() {
+  const [driveUrl, setDriveUrl] = useState<string | null | undefined>();
+  const [chatDocs, setChatDocs] = useState<{ documents: Document[]; processing: ProcessingDocument[] } | undefined>()
+  const searchParams = useSearchParams()
 
-  if (!driveUrl) {
+  useEffect(() => {
+    const subscribe = async () => {
+      const driveUrlFromParams = searchParams.get('driveUrl');
+      console.log(driveUrlFromParams);
+      setDriveUrl(driveUrlFromParams);
+      if (driveUrlFromParams) {
+        const newChat = await api.createNewChat(driveUrlFromParams);
+        let interval = setInterval(async () => {
+          const chatDocsFromApi = await api.getChatDocs(newChat.id);
+          setChatDocs(chatDocsFromApi);
+          console.log(chatDocsFromApi)
+          if (chatDocsFromApi.documents.length > 0) {
+            clearInterval(interval);
+            redirect(`/c/${newChat.id}`);
+          }
+        }, 1000);
+      }
+    };
+    subscribe();
+  }, [])
+
+  if (driveUrl === null) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
         <h1 className="text-xl font-semibold mb-4">Invalid Link</h1>
@@ -56,9 +63,39 @@ export default async function NewFromDrivePage({ searchParams: searchParamsPromi
     );
   }
 
+  if (driveUrl === undefined) {
+    return <LoadingState />;
+  }
+
+  if (!chatDocs) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader className="w-8 h-8 animate-spin text-primary mb-4" />
+        <h1 className="text-xl font-semibold">Downloading files from Google Drive...</h1>
+        <p className="text-muted-foreground">Please wait a moment.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <Loader className="w-8 h-8 animate-spin text-primary mb-4" />
+      <h1 className="text-xl font-semibold">Files are now processing...</h1>
+      <p className="text-muted-foreground">You will be redirected as soon as at least one file is processed.</p>
+      {chatDocs.processing.map((doc) => (
+        <div key={doc.job_id}>
+          <p>{doc.name}</p>
+          <p>{doc.status}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Page() {
   return (
     <Suspense fallback={<LoadingState />}>
-      <CreateChatAndRedirect driveUrl={driveUrl} />
+      <NewFromDrivePage />
     </Suspense>
-  );
+  )
 }

@@ -37,16 +37,17 @@ function LoadingState() {
 }
 
 interface NewFromDrivePageProps {
-  searchParams: {
+  searchParams: Promise<{
     driveUrl?: string;
-  };
+  }>;
 }
 
 /**
  * The main page component for the /new-from-drive route.
  * It validates the input and uses a Suspense boundary for a better user experience.
  */
-export default function NewFromDrivePage({ searchParams }: NewFromDrivePageProps) {
+export default async function NewFromDrivePage({ searchParams: searchParamsPromise }: NewFromDrivePageProps) {
+  const searchParams = await searchParamsPromise;
   const { driveUrl } = searchParams;
 
   if (!driveUrl) {

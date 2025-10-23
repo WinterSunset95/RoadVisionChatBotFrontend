@@ -7,12 +7,13 @@ import { getMessagesForChat, getChatDocs, getChats } from '@/lib/api';
 import { notFound } from 'next/navigation';
 
 interface ChatPageProps {
-  params: {
+  params: Promise<{
     chatId: string;
-  };
+  }>;
 }
 
-export default async function ChatPage({ params }: ChatPageProps) {
+export default async function ChatPage({ params: paramsPromise }: ChatPageProps) {
+  const params = await paramsPromise;
   try {
     // Fetch initial data in parallel on the server
     const [initialMessages, initialDocuments, chats] = await Promise.all([

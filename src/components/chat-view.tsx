@@ -37,7 +37,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatDetails, setChatDetails] = useState<Chat | undefined>(initialChatDetails);
   const [documents, setDocuments] = useState<Document[]>(initialDocuments.documents);
-  const [chats, setChats] = useState<Chat[]>(initialChats);
+  const [chats, setChats] = useState<Chat[]>([]);
   
   const [isSending, setIsSending] = useState(false);
   
@@ -71,6 +71,10 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [chatId]);
+
+  useEffect(() => {
+    setChats(initialChats);
+  }, [initialChats]);
 
   const handleSendMessage = async (inputText: string) => {
     if (!chatId) {

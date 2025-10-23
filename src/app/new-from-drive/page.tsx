@@ -8,19 +8,16 @@ import { Loader } from 'lucide-react';
  * While this component is resolving, Next.js will show the Suspense fallback.
  */
 async function CreateChatAndRedirect({ driveUrl }: { driveUrl: string }) {
-  try {
-    const newChat = await api.createNewChat(driveUrl);
-    redirect(`/c/${newChat.id}`);
-  } catch (error) {
-    // If the API call fails, render an error message.
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <h1 className="text-xl font-semibold mb-4 text-destructive">Error Creating Chat</h1>
-        <p className="text-muted-foreground">Could not create a new chat from the provided link.</p>
-        <p className="mt-2 text-xs bg-destructive/10 p-2 rounded-md text-destructive-foreground">{(error as Error).message}</p>
-      </div>
-    );
-  }
+  const newChat = await api.createNewChat(driveUrl);
+  redirect(`/c/${newChat.id}`);
+  // redirect(`/c/777b9006-ad0b-42e8-97c0-986d9e8678fb`)
+  //
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+      <h1 className="text-xl font-semibold mb-4 text-destructive">Error Creating Chat</h1>
+      <p className="text-muted-foreground">Could not create a new chat from the provided link.</p>
+    </div>
+  );
 }
 
 /**

@@ -37,6 +37,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [chatDetails, setChatDetails] = useState<Chat | undefined>(initialChatDetails);
   const [documents, setDocuments] = useState<Document[]>(initialDocuments.documents);
+  const [chats, setChats] = useState<Chat[]>(initialChats);
   
   const [isSending, setIsSending] = useState(false);
   
@@ -99,7 +100,11 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
     try {
       const { botMessage, messageCount } = await api.sendMessageToChat(chatId, inputText);
-      console.log(botMessage);
+      // If it is the first message (ie messageCount == 2), then we have to re-fetch the initial chats (which will reload their convo names)
+      if (messageCount === 2) {
+        const chats = await dispatch(fetchChats()).unwrap();
+        setChats(chats);
+      }
       setMessages((prev) => [...prev, botMessage]);
       dispatch(updateChatDetails({ chatId: chatId!, messageCount }));
     } catch (err) {
@@ -213,7 +218,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
   return (
     <div className="flex h-full w-full">
       <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
-      <Sidebar initialChats={initialChats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
+      <Sidebar initialChats={chats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
       <main className="flex flex-col h-full bg-background flex-1">
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">

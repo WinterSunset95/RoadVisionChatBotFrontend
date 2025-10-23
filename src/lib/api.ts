@@ -37,8 +37,15 @@ export const getChats = async (): Promise<Chat[]> => {
   return handleResponse<Chat[]>(response);
 };
 
-export const createNewChat = async (): Promise<Chat> => {
-  const response = await fetch(`${API_BASE}/chats`, { method: 'POST' });
+export const createNewChat = async (driveUrl?: string): Promise<Chat> => {
+  const options: RequestInit = {
+    method: 'POST',
+  };
+  if (driveUrl) {
+    options.headers = { 'Content-Type': 'application/json' };
+    options.body = JSON.stringify({ driveUrl });
+  }
+  const response = await fetch(`${API_BASE}/chats`, options);
   return handleResponse<Chat>(response);
 };
 

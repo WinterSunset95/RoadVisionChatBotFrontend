@@ -24,9 +24,9 @@ export const fetchChats = createAsyncThunk('chats/fetchChats', async () => {
   return await api.getChats();
 });
 
-export const createNewChat = createAsyncThunk('chats/createNewChat', async (_, { rejectWithValue }) => {
+export const createNewChat = createAsyncThunk('chats/createNewChat', async (driveUrl?: string, { rejectWithValue }) => {
     try {
-        return await api.createNewChat();
+        return await api.createNewChat(driveUrl);
     } catch (error: any) {
         return rejectWithValue(error.message);
     }

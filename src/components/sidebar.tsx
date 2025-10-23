@@ -54,7 +54,7 @@ export function Sidebar({ initialChats, isMobileOpen, onMobileClose, isCollapsed
 
   const handleCreateChat = async () => {
     try {
-      const newChat = await dispatch(createNewChat()).unwrap();
+      const newChat = await dispatch(createNewChat(undefined)).unwrap();
       router.push(`/c/${newChat.id}`);
     } catch (error) {
       addToast('error', 'Failed to create chat', error as string);

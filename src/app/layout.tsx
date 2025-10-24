@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "RoadGPT",
   description: "RoadVision's very own chatbot. A helper for tender documents.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 /**

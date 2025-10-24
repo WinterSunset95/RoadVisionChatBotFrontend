@@ -223,15 +223,16 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     <div className="flex h-full w-full">
       <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
       <Sidebar initialChats={chats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
-      <main className="flex flex-col h-full w-full bg-background flex-1 overflow-y-auto">
+      <main className="flex flex-col h-full w-full bg-background flex-1 overflow-auto">
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             <div className="flex items-center gap-3 min-w-0">
               <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setIsMobileSidebarOpen(true)}><LayoutPanelLeft size={20} /></Button>
               <Button variant="outline" size="icon" className="hidden lg:flex" onClick={() => setIsSidebarCollapsed(prev => !prev)}><LayoutPanelLeft size={20} /></Button>
-              <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
-                <Bot size={20} />
+              <div className="w-9 h-9 bg-card text-primary-foreground rounded-r-lg flex items-center justify-center shadow-2xl">
+                <img src="/rv-logo-cropped.png" alt="Logo" className="w-full h-full object-fill" />
+                {/* <Bot size={20} /> */}
               </div>
               <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'New Chat'}</h1>
             </div>

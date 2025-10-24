@@ -18,31 +18,14 @@ interface DocumentPanelProps {
 }
 
 export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDelete, showDocPanel }: DocumentPanelProps) {
-  const height = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      // Scroll height + 2rem in px
-      // height.current = containerRef.current.scrollHeight + 2 * 16;
-      // Check if padding bottom exists
-      const paddingBottom = window.getComputedStyle(containerRef.current).paddingBottom;
-      if (paddingBottom) {
-        height.current = containerRef.current.scrollHeight;
-      } else {
-        height.current = containerRef.current.scrollHeight + 2 * 16;
-      }
-      console.log(height.current, containerRef.current.scrollHeight);
-    }
-  }, [isLoading, docs, processingDocs]);
 
   return (
     <div
-      className={`px-4 bg-accent/50 border transition-[height,padding] duration-500 overflow-hidden`}
-      style={{
-        height: showDocPanel ? height.current : 0,
-        padding: showDocPanel ? '1rem' : '0',
-      }}
+      className={`
+        px-4 bg-accent/50 border transition-[height,padding] duration-500 overflow-hidden ${showDocPanel ? 'h-1/3 py-4' : 'h-0 py-0'}
+        flex flex-col
+      `}
       ref={containerRef}
     >
       <div className="flex items-center justify-between mb-3">
@@ -59,7 +42,7 @@ export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDele
           Loading documents...
         </div>
       ) : docs.length > 0 || processingDocs.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2 flex-1 overflow-y-auto">
           {processingDocs.map((doc) => (
             <div key={doc.name} className="flex items-center justify-between p-3 bg-background rounded-lg shadow-sm border opacity-70">
               <div className="flex items-center gap-3 min-w-0">

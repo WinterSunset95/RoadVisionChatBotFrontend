@@ -221,9 +221,9 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
 
   return (
     <div className="flex h-full w-full">
-      <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
       <Sidebar initialChats={chats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
       <main className="flex flex-col h-full w-full bg-background flex-1 overflow-auto">
+        <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-4xl mx-auto">

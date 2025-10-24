@@ -41,8 +41,8 @@ export function MessageBubble({ message }: { message: Message }) {
       </div>
 
       <div className={`flex-1 ${message.sender === 'user' ? 'flex flex-col items-end max-w-2xl' : ''}`}>
-        <div className={cn('inline-block', bubbleClass)}>
-          <div className="text-sm max-w-none text-current">
+        <div className={cn(bubbleClass)}>
+          <div className="max-w-2xl lg:max-w-4xl w-full text-sm text-current">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -55,13 +55,15 @@ export function MessageBubble({ message }: { message: Message }) {
                 td: ({ node, ...props }) => <td className="border border-primary/20 p-2" {...props} />,
                 hr: ({ node, ...props }) => <hr className="my-4" {...props} />,
                 blockquote: ({ node, ...props }) => <blockquote className="my-2 border-l-2 border-primary/20 pl-4 italic" {...props} />,
-                code: ({ node, ...props }) => <code className="inline-block rounded bg-muted px-1 py-0.5 font-mono text-sm" {...props} />,
                 h1: ({ node, ...props }) => <h1 className="my-2 text-2xl font-bold" {...props} />,
                 h2: ({ node, ...props }) => <h2 className="my-2 text-xl font-bold" {...props} />,
                 h3: ({ node, ...props }) => <h3 className="my-2 text-lg font-bold" {...props} />,
                 h4: ({ node, ...props }) => <h4 className="my-2 text-md font-bold" {...props} />,
                 h5: ({ node, ...props }) => <h5 className="my-2 text-sm font-bold" {...props} />,
                 h6: ({ node, ...props }) => <h6 className="my-2 text-xs font-bold" {...props} />,
+                pre: ({ node, ...props }) => <pre className="w-full overflow-x-auto" {...props} />,
+                code: ({ node, ...props }) => <code className="inline-block rounded bg-accent px-1 py-0.5 font-mono text-sm" {...props} />,
+                img: ({ node, ...props }) => <img className="my-2 mx-auto max-w-full rounded-md" {...props} />,
               }}
             >
               {message.text}

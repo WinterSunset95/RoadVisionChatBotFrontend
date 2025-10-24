@@ -62,7 +62,7 @@ export function MessageList({ messages, isLoading, onSendMessage }: MessageListP
 
   return (
     <div className="flex-1 overflow-y-auto bg-muted/50">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl xl:max-w-6xl mx-auto p-6 space-y-6 w-full">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}

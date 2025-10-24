@@ -223,7 +223,7 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     <div className="flex h-full w-full">
       <UploadProgressOverlay uploads={uploadTasks} onCancel={handleCancelUpload} />
       <Sidebar initialChats={chats} isMobileOpen={isMobileSidebarOpen} onMobileClose={() => setIsMobileSidebarOpen(false)} isCollapsed={isSidebarCollapsed} />
-      <main className="flex flex-col h-full bg-background flex-1">
+      <main className="flex flex-col h-full w-full bg-background flex-1 overflow-y-auto">
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b p-3 sticky top-0 z-10">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -233,20 +233,20 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
               <div className="w-9 h-9 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
                 <Bot size={20} />
               </div>
-            <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'New Chat'}</h1>
+              <h1 className="font-semibold text-foreground truncate">{chatDetails?.title || 'New Chat'}</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setShowDocPanel(!showDocPanel)} variant="secondary" size="sm" className="gap-2">
+                  <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setShowDocPanel(!showDocPanel)} variant="secondary" size="sm" className="gap-2">
-                <FileText size={16} /> <span className="hidden sm:inline">Documents</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
       
-      <DocumentPanel docs={documents} processingDocs={processingDocs} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc} showDocPanel={showDocPanel} />
+        <DocumentPanel docs={documents} processingDocs={processingDocs} isLoading={false} onClose={() => setShowDocPanel(false)} onDelete={handleDeleteDoc} showDocPanel={showDocPanel} />
 
-      <MessageList messages={messages} isLoading={isSending} onSendMessage={handleSendMessage} />
-      <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || uploadTasks.length > 0} isUploading={uploadTasks.length > 0} />
+        <MessageList messages={messages} isLoading={isSending} onSendMessage={handleSendMessage} />
+        <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} disabled={isSending || uploadTasks.length > 0} isUploading={uploadTasks.length > 0} />
       </main>
     </div>
   );

@@ -36,9 +36,10 @@ export function MessageList({ messages, isLoading, onSendMessage }: MessageListP
   if (messages.length === 0 && !isLoading) {
     return (
         <div className="flex-1 overflow-y-auto bg-muted/50 flex flex-col items-center justify-center">
-            <div className="text-center max-w-lg mx-auto p-8">
-                <div className="w-24 h-24 bg-primary text-primary-foreground rounded-3xl flex items-center justify-center mx-auto shadow-lg">
-                    <Bot className="w-12 h-12" />
+            <div className="text-center max-w-lg mx-auto p-4 lg:p-8 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 bg-card text-primary-foreground rounded-r-lg flex items-center justify-center shadow-xl">
+                  {/* <Bot className="w-12 h-12" /> */}
+                  <img src="/rv-logo-cropped.png" alt="Logo" className="w-full h-full object-fill" />
                 </div>
                 <h1 className="text-4xl font-bold mt-8 mb-4">
                     Chat with AI

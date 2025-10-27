@@ -11,6 +11,11 @@ const API_BASE = typeof window === 'undefined'
   ? 'http://localhost:5000/api' // Use absolute URL on the server
   : '/api';                      // Use relative URL on the client (proxied)
 
+export const getApiBase = () => {
+  return API_BASE;
+};
+
+
 /**
  * A helper function to handle API responses.
  * It parses the JSON and throws an error if the response is not 'ok'.
@@ -115,6 +120,8 @@ export const getChatDocs = async (chatId: string): Promise<{ documents: Document
             name: p.name,
             job_id: p.job_id,
             status: p.status,
+            stage: p.stage,
+            progress: p.progress
         })) : [];
 
         return { documents, processing };
@@ -122,6 +129,11 @@ export const getChatDocs = async (chatId: string): Promise<{ documents: Document
         console.warn('Could not fetch documents, maybe none exist for this chat.', error);
         return { documents: [], processing: [] };
     }
+};
+
+export const getChatDocsSSE = (chatId: string, onMessage: (event: MessageEvent) => void) => {
+  const eventSource = new EventSource(`${API_BASE}/chats/${chatId}/docs-sse`);
+  eventSource.onmessage = onMessage;
 };
 
 

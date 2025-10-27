@@ -20,6 +20,25 @@ interface DocumentPanelProps {
 export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDelete, showDocPanel }: DocumentPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const statusMap = {
+    "queued": "Queued",
+    "downloading": "Downloading",
+    "processing": "Processing",
+    "finished": "Finished",
+    "failed": "Failed",
+  };
+
+  const progressMap = {
+    "not_processing": "Not Processing",
+    "llama_loading": "Loading Llama Index",
+    "pymupdf_loading": "Loading PyMuPDF",
+    "tesseract_loading": "Loading Tesseract",
+    "extracting_content": "Extracting Content",
+    "creating_chunks": "Creating Chunks",
+    "adding_to_vector_store": "Adding to Vector Store",
+    "saving_metadata": "Saving Metadata",
+  };
+
   return (
     <div
       className={`
@@ -49,10 +68,14 @@ export function DocumentPanel({ docs, processingDocs, isLoading, onClose, onDele
                 <div className="p-2 bg-primary/10 rounded-md"><FileText size={16} className="text-primary" /></div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
-                  <p className="text-xs text-muted-foreground">Processing...</p>
+                  <p className="text-xs text-muted-foreground">{statusMap[doc.status]} - {progressMap[doc.stage]}</p>
                 </div>
               </div>
-              <Loader className="w-4 h-4 animate-spin text-primary" />
+              {doc.progress != 0 ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground">{doc.progress}%</p>
+                </div>
+              ): <Loader className="w-4 h-4 animate-spin text-primary" /> }
             </div>
           ))}
           {docs.map((doc) => (

@@ -20,6 +20,7 @@ import { useToasts } from '@/lib/hooks/use-toasts';
 import { Bot, FileText, LayoutPanelLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UploadProgressOverlay, UploadItem } from '@/components/upload-progress-overlay';
+import { DocsSSEMessage } from '@/types/contract';
 
 interface ChatViewProps {
   chatId?: string;
@@ -218,6 +219,21 @@ export function ChatView({ chatId: initialChatId, initialMessages = [], initialD
     }, 5000);
     return () => clearInterval(interval);
   }, [chatId]);
+
+  useEffect(() => {
+    const api_base = api.getApiBase();
+    const eventSource = new EventSource(`${api_base}/chats/${chatId}/docs-sse`);
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data) as DocsSSEMessage;
+      setDocuments(data.pdfs.concat(data.xslx));
+      setProcessingDocs(data.processing);
+    };
+    eventSource.onerror = (error) => {
+      console.error('EventSource error:', error);
+      eventSource.close();
+    };
+    return () => eventSource.close();
+  }, [chatId])
 
   return (
     <div className="flex h-full w-full">

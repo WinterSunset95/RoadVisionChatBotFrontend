@@ -38,8 +38,8 @@ export const FileProcessing: Story = {
     chatDocs: {
       documents: [],
       processing: [
-        { job_id: "test-id", name: "newfile_1.pdf", status: "processing" },
-        { job_id: "test-id2", name: "newfile_2.pdf", status: "processing" }
+        { job_id: "test-id", name: "newfile_1.pdf", status: "processing", stage: "tesseract_loading", progress: 50 },
+        { job_id: "test-id2", name: "newfile_2.pdf", status: "processing", stage: "tesseract_loading", progress: 50 }
       ]
     },
   }

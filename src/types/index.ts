@@ -60,7 +60,9 @@ export interface SourceReference {
 export interface ProcessingDocument {
     name: string;
     job_id: string;
-    status: 'processing' | 'queued';
+    status: "queued" | "downloading" | "processing" | "finished" | "failed";
+    stage: "not_processing" | "llama_loading" | "pymupdf_loading" | "tesseract_loading" | "extracting_content" | "creating_chunks" | "adding_to_vector_store" | "saving_metadata";
+    progress: number;
 }
 
 /**
